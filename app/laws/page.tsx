@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SURVEY_LAWS, CATEGORY_TREE } from "@/lib/constants/laws";
+import { SURVEY_LAWS, CATEGORY_TREE, lawHref } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
 
 export default function LawsPage() {
@@ -31,7 +31,7 @@ export default function LawsPage() {
               {typeGroups[type].map((law) => (
                 <Link
                   key={law.id}
-                  href={`/laws/${law.id}`}
+                  href={lawHref(law.id)}
                   className="flex items-start gap-3 px-4 py-4 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
@@ -71,7 +71,7 @@ export default function LawsPage() {
                 {cat.children?.map((child) => (
                   <Link
                     key={child.id}
-                    href={child.lawId ? `/laws/${child.lawId}` : "#"}
+                    href={child.lawId ? `${lawHref(child.lawId)}?cat=${child.id}` : "#"}
                     className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 py-1 px-2 rounded hover:bg-blue-50 transition-colors"
                   >
                     <span className="text-gray-300">›</span>

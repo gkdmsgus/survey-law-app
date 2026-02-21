@@ -2,6 +2,7 @@
 
 export interface SurveyLaw {
   id: string;           // 법령정보센터 법령 ID
+  slug: string;         // URL 슬러그 (사람이 읽기 쉬운 영문)
   name: string;         // 법령명
   shortName: string;    // 약칭
   type: "법률" | "시행령" | "시행규칙" | "고시" | "훈령" | "예규";
@@ -13,6 +14,7 @@ export interface SurveyLaw {
 export const SURVEY_LAWS: SurveyLaw[] = [
   {
     id: "011023",
+    slug: "gonggan-beob",
     name: "공간정보의 구축 및 관리 등에 관한 법률",
     shortName: "공간정보관리법",
     type: "법률",
@@ -21,6 +23,7 @@ export const SURVEY_LAWS: SurveyLaw[] = [
   },
   {
     id: "011113",
+    slug: "gonggan-sihaengnyeong",
     name: "공간정보의 구축 및 관리 등에 관한 법률 시행령",
     shortName: "공간정보관리법 시행령",
     type: "시행령",
@@ -29,6 +32,7 @@ export const SURVEY_LAWS: SurveyLaw[] = [
   },
   {
     id: "011120",
+    slug: "gonggan-sihaenggyu",
     name: "공간정보의 구축 및 관리 등에 관한 법률 시행규칙",
     shortName: "공간정보관리법 시행규칙",
     type: "시행규칙",
@@ -37,6 +41,7 @@ export const SURVEY_LAWS: SurveyLaw[] = [
   },
   {
     id: "011121",
+    slug: "jijuk-sihaenggyu",
     name: "지적측량 시행규칙",
     shortName: "지적측량규칙",
     type: "시행규칙",
@@ -44,7 +49,8 @@ export const SURVEY_LAWS: SurveyLaw[] = [
     categories: ["지적측량", "허용오차", "성과기준", "측량기간"],
   },
   {
-    id: "2100000258132",  // 행정규칙 일련번호 (lawService.do?target=admrul 용)
+    id: "2100000258132",
+    slug: "gongcong-jageopgyu",
     name: "공공측량 작업규정",
     shortName: "공공측량규정",
     type: "고시",
@@ -53,7 +59,8 @@ export const SURVEY_LAWS: SurveyLaw[] = [
     isAdminRule: true,
   },
   {
-    id: "2100000263420",  // 행정규칙 일련번호
+    id: "2100000263420",
+    slug: "jijuk-hwakjeong",
     name: "지적확정측량규정",
     shortName: "지적확정측량규정",
     type: "훈령",
@@ -62,7 +69,8 @@ export const SURVEY_LAWS: SurveyLaw[] = [
     isAdminRule: true,
   },
   {
-    id: "2100000263380",  // 행정규칙 일련번호
+    id: "2100000263380",
+    slug: "gnss-jijuk",
     name: "GNSS에 의한 지적측량규정",
     shortName: "GNSS측량규정",
     type: "예규",
@@ -71,7 +79,8 @@ export const SURVEY_LAWS: SurveyLaw[] = [
     isAdminRule: true,
   },
   {
-    id: "2100000187623",  // 행정규칙 일련번호
+    id: "2100000187623",
+    slug: "ilban-jageopgyu",
     name: "일반측량 작업규정",
     shortName: "일반측량규정",
     type: "고시",
@@ -83,6 +92,24 @@ export const SURVEY_LAWS: SurveyLaw[] = [
 
 // 법령 ID → 법령 정보 맵
 export const LAW_MAP = new Map(SURVEY_LAWS.map((l) => [l.id, l]));
+
+// 슬러그 → 법령 ID 변환
+export const SLUG_TO_ID = new Map(SURVEY_LAWS.map((l) => [l.slug, l.id]));
+// 법령 ID → 슬러그 변환
+export const ID_TO_SLUG = new Map(SURVEY_LAWS.map((l) => [l.id, l.slug]));
+
+/** 슬러그 또는 숫자 ID를 실제 법령 ID로 변환 (하위 호환성) */
+export function resolveToId(slugOrId: string): string {
+  return SLUG_TO_ID.get(slugOrId) ?? slugOrId;
+}
+
+/** 법령 ID를 슬러그 URL로 변환 */
+export function lawHref(lawId: string, articleNo?: string, extra?: string): string {
+  const slug = ID_TO_SLUG.get(lawId) ?? lawId;
+  if (articleNo && extra) return `/laws/${slug}/${articleNo}/${extra}`;
+  if (articleNo) return `/laws/${slug}/${articleNo}`;
+  return `/laws/${slug}`;
+}
 
 // 카테고리 트리 구조
 export interface CategoryNode {

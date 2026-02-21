@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CATEGORY_TREE, type CategoryNode } from "@/lib/constants/laws";
+import { CATEGORY_TREE, type CategoryNode, resolveToId, lawHref } from "@/lib/constants/laws";
 import { useState, useRef, useEffect, Suspense } from "react";
 
 const NAV_ITEMS = [
@@ -23,9 +23,10 @@ function SidebarInner({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // 현재 법령 페이지의 lawId 추출 (/laws/[lawId] 또는 /laws/[lawId]/...)
+  // 현재 법령 페이지의 lawId 추출 (/laws/[slug] 또는 /laws/[slug]/...)
+  // 슬러그로 들어올 수 있으니 resolveToId로 실제 ID로 변환
   const lawIdMatch = pathname.match(/^\/laws\/([^/]+)/);
-  const activeLawId = lawIdMatch ? lawIdMatch[1] : null;
+  const activeLawId = lawIdMatch ? resolveToId(lawIdMatch[1]) : null;
   // ?cat= 파라미터로 카테고리 아이템 구별
   const activeCatId = searchParams.get("cat");
   // 조문 상세/이력 페이지 (/laws/[id]/[articleNo] 또는 /laws/[id]/[articleNo]/history)
@@ -210,8 +211,8 @@ function CategoryTreeNode({
   }, [isChildActive]);
 
   if (!hasChildren) {
-    // 링크에 ?cat=노드id 추가해서 같은 lawId 내 카테고리를 구별
-    const href = node.lawId ? `/laws/${node.lawId}?cat=${node.id}` : "#";
+    // 링크에 ?cat=노드id 추가해서 같은 lawId 내 카테고리를 구별 (슬러그 사용)
+    const href = node.lawId ? `${lawHref(node.lawId)}?cat=${node.id}` : "#";
     // activeCatId가 있으면 catId로 판단, 없으면 lawId로 판단
     // 조문 상세 페이지에서는 cat 없는 폴백 끔 (중복 표시 방지)
     const isActive = activeCatId

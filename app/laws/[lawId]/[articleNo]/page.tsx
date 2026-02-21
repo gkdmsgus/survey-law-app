@@ -7,12 +7,14 @@ import ChangeBadge from "@/components/laws/ChangeBadge";
 import FavoriteButton from "@/components/laws/FavoriteButton";
 import { formatLawDate } from "@/lib/utils/date";
 import type { Article } from "@/lib/api/types";
+import { resolveToId, lawHref } from "@/lib/constants/laws";
 
 export default function ArticleDetailPage() {
-  const { lawId, articleNo } = useParams<{
+  const { lawId: rawLawId, articleNo } = useParams<{
     lawId: string;
     articleNo: string;
   }>();
+  const lawId = resolveToId(rawLawId); // 슬러그 → 실제 ID 변환
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export default function ArticleDetailPage() {
       <div className="max-w-3xl mx-auto text-center py-12">
         <p className="text-red-600">{error ?? "조문을 찾을 수 없습니다."}</p>
         <Link
-          href={`/laws/${lawId}`}
+          href={lawHref(lawId)}
           className="text-blue-600 text-sm mt-4 inline-block"
         >
           ← 법령으로 돌아가기
@@ -65,7 +67,7 @@ export default function ArticleDetailPage() {
         {" / "}
         <Link href="/laws" className="hover:text-blue-600">법령</Link>
         {" / "}
-        <Link href={`/laws/${lawId}`} className="hover:text-blue-600">
+        <Link href={lawHref(lawId)} className="hover:text-blue-600">
           {article.lawName}
         </Link>
         {" / "}
@@ -97,7 +99,7 @@ export default function ArticleDetailPage() {
               articleTitle={article.articleTitle}
             />
             <Link
-              href={`/laws/${lawId}/${articleNo}/history`}
+              href={lawHref(lawId, articleNo, "history")}
               className="text-sm px-3 py-1.5 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50"
             >
               개정이력
@@ -116,13 +118,13 @@ export default function ArticleDetailPage() {
       {/* 하단 네비게이션 */}
       <div className="flex justify-between text-sm">
         <Link
-          href={`/laws/${lawId}`}
+          href={lawHref(lawId)}
           className="text-blue-600 hover:underline"
         >
           ← 전체 조문 목록
         </Link>
         <Link
-          href={`/laws/${lawId}/${articleNo}/history`}
+          href={lawHref(lawId, articleNo, "history")}
           className="text-gray-500 hover:text-gray-700"
         >
           개정이력 보기 →

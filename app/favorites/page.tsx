@@ -6,6 +6,7 @@ import { useFavorites } from "@/lib/hooks/useFavorites";
 import { useSettingsContext } from "@/lib/providers/SettingsProvider";
 import ChangeBadge from "@/components/laws/ChangeBadge";
 import { formatTimestamp } from "@/lib/utils/date";
+import { lawHref } from "@/lib/constants/laws";
 
 export default function FavoritesPage() {
   const { favorites, isLoading, removeFavorite } = useFavorites();
@@ -71,11 +72,7 @@ export default function FavoritesPage() {
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   {fav.hasChanges && <ChangeBadge isNew />}
                   <Link
-                    href={
-                      fav.articleNo
-                        ? `/laws/${fav.lawId}/${fav.articleNo}`
-                        : `/laws/${fav.lawId}`
-                    }
+                    href={lawHref(fav.lawId, fav.articleNo ?? undefined)}
                     className="text-sm font-semibold text-gray-900 hover:text-blue-600 truncate"
                   >
                     {fav.lawName}
@@ -96,8 +93,8 @@ export default function FavoritesPage() {
                   <Link
                     href={
                       fav.articleNo
-                        ? `/laws/${fav.lawId}/${fav.articleNo}/history`
-                        : `/laws/${fav.lawId}`
+                        ? lawHref(fav.lawId, fav.articleNo, "history")
+                        : lawHref(fav.lawId)
                     }
                     className="text-xs text-red-600 hover:underline"
                   >

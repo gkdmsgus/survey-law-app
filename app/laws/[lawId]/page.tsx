@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { LAW_MAP } from "@/lib/constants/laws";
+import { LAW_MAP, resolveToId, lawHref } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
 import ChangeBadge from "@/components/laws/ChangeBadge";
 import FavoriteButton from "@/components/laws/FavoriteButton";
@@ -13,7 +13,8 @@ import { useFavorites } from "@/lib/hooks/useFavorites";
 import type { LawDetail, Article } from "@/lib/api/types";
 
 export default function LawDetailPage() {
-  const { lawId } = useParams<{ lawId: string }>();
+  const { lawId: rawLawId } = useParams<{ lawId: string }>();
+  const lawId = resolveToId(rawLawId); // 슬러그 → 실제 ID 변환
   const { settings } = useSettingsContext();
   const [detail, setDetail] = useState<LawDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -523,7 +524,7 @@ function ArticleCard({
             {isArticleFav ? "⭐" : "☆"}
           </button>
           <Link
-            href={`/laws/${lawId}/${article.articleNo}`}
+            href={lawHref(lawId, article.articleNo)}
             onClick={(e) => e.stopPropagation()}
             className="text-xs text-blue-600 hover:underline"
           >

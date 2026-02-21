@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SURVEY_LAWS, CATEGORY_TREE } from "@/lib/constants/laws";
+import { SURVEY_LAWS, CATEGORY_TREE, lawHref } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
 import MyJobRecommend from "@/components/home/MyJobRecommend";
 
@@ -74,7 +74,7 @@ export default function HomePage() {
                 {cat.children?.slice(0, 4).map((child) => (
                   <Link
                     key={child.id}
-                    href={child.lawId ? `/laws/${child.lawId}` : "#"}
+                    href={child.lawId ? `${lawHref(child.lawId)}?cat=${child.id}` : "#"}
                     className="text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 text-gray-600 px-2 py-1 rounded transition-colors"
                   >
                     {child.label}
@@ -98,7 +98,7 @@ export default function HomePage() {
           {SURVEY_LAWS.map((law) => (
             <Link
               key={law.id}
-              href={`/laws/${law.id}`}
+              href={lawHref(law.id)}
               className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
             >
               <LawTypeBadge type={law.type} />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { lawHref } from "@/lib/constants/laws";
 
 // ── 수치 참조 데이터 ──────────────────────────────────────────────
 // 각 카드: 측량 종류별 핵심 수치 테이블
@@ -217,8 +218,8 @@ export default function QuickRefPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {QUICK_REF_CARDS.map((card) => {
           const c = COLOR_MAP[card.color];
-          const href = `/laws/${card.lawId}?cat=${card.catId}`;
-          const searchHref = `/laws/${card.lawId}?cat=${card.catId}`;
+          const href = `${lawHref(card.lawId)}?cat=${card.catId}`;
+          const searchHref = `${lawHref(card.lawId)}?cat=${card.catId}`;
           return (
             <div
               key={card.id}
@@ -286,7 +287,7 @@ export default function QuickRefPage() {
               <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-2">
                 <p className="text-xs text-gray-400 flex-1">{card.note}</p>
                 <Link
-                  href={`/laws/${card.lawId}?cat=${card.catId}`}
+                  href={`${lawHref(card.lawId)}?cat=${card.catId}`}
                   className={`shrink-0 text-xs underline underline-offset-2 ${c.link}`}
                 >
                   조문 검색

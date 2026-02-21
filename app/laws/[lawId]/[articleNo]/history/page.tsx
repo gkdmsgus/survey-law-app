@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import ArticleHistoryDiff from "@/components/laws/ArticleHistoryDiff";
 import type { ArticleSnapshot } from "@/lib/api/types";
+import { resolveToId, lawHref } from "@/lib/constants/laws";
 
 export default function ArticleHistoryPage() {
-  const { lawId, articleNo } = useParams<{
+  const { lawId: rawLawId, articleNo } = useParams<{
     lawId: string;
     articleNo: string;
   }>();
+  const lawId = resolveToId(rawLawId); // 슬러그 → 실제 ID 변환
   const [snapshots, setSnapshots] = useState<ArticleSnapshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,9 +42,9 @@ export default function ArticleHistoryPage() {
         {" / "}
         <Link href="/laws" className="hover:text-blue-600">법령</Link>
         {" / "}
-        <Link href={`/laws/${lawId}`} className="hover:text-blue-600">법령 상세</Link>
+        <Link href={lawHref(lawId)} className="hover:text-blue-600">법령 상세</Link>
         {" / "}
-        <Link href={`/laws/${lawId}/${articleNo}`} className="hover:text-blue-600">
+        <Link href={lawHref(lawId, articleNo)} className="hover:text-blue-600">
           제{articleNo}조
         </Link>
         {" / "}
@@ -70,7 +72,7 @@ export default function ArticleHistoryPage() {
       </div>
 
       <Link
-        href={`/laws/${lawId}/${articleNo}`}
+        href={lawHref(lawId, articleNo)}
         className="inline-block text-sm text-blue-600 hover:underline"
       >
         ← 조문으로 돌아가기

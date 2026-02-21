@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { SearchFtsResult, SearchApiResult } from "@/lib/hooks/useSearch";
+import { lawHref } from "@/lib/constants/laws";
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -145,7 +146,7 @@ function SearchPageContent() {
                 {ftsResults.map((r, i) => (
                   <Link
                     key={i}
-                    href={`/laws/${r.lawId}/${r.articleNo}`}
+                    href={lawHref(r.lawId, r.articleNo)}
                     className="block bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
                   >
                     <div className="flex items-center gap-2 mb-1">
@@ -179,7 +180,7 @@ function SearchPageContent() {
                 {apiResults.map((r, i) => (
                   <Link
                     key={i}
-                    href={`/laws/${r.lawId}`}
+                    href={lawHref(r.lawId)}
                     className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
                   >
                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSettingsContext } from "@/lib/providers/SettingsProvider";
-import { SURVEY_LAWS, CATEGORY_TREE } from "@/lib/constants/laws";
+import { SURVEY_LAWS, CATEGORY_TREE, lawHref } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
 
 // lawId에 해당하는 첫 번째 카테고리 leaf 노드 id 반환
@@ -39,7 +39,7 @@ export default function MyJobRecommend() {
       <div className="bg-white rounded-lg border border-blue-200 divide-y divide-gray-100">
         {recommended.map((law) => {
           const catId = getFirstCatId(law.id);
-          const href = catId ? `/laws/${law.id}?cat=${catId}` : `/laws/${law.id}`;
+          const href = catId ? `${lawHref(law.id)}?cat=${catId}` : lawHref(law.id);
           return (
           <Link
             key={law.id}
