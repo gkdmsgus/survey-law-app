@@ -9,6 +9,7 @@ import ChangeBadge from "@/components/laws/ChangeBadge";
 import FavoriteButton from "@/components/laws/FavoriteButton";
 import { formatLawDate } from "@/lib/utils/date";
 import { useSettingsContext } from "@/lib/providers/SettingsProvider";
+import { useFavorites } from "@/lib/hooks/useFavorites";
 import type { LawDetail, Article } from "@/lib/api/types";
 
 export default function LawDetailPage() {
@@ -18,8 +19,10 @@ export default function LawDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResultIdx, setSearchResultIdx] = useState(0); // 현재 포커스된 검색 결과 인덱스
   const [tocOpen, setTocOpen] = useState(false);
   const [activeChapter, setActiveChapter] = useState<string>("");
+  const articleRefs = useRef<Map<number, HTMLDivElement>>(new Map()); // 검색 결과 ref 맵
 
   useEffect(() => {
     const load = async () => {
@@ -57,7 +60,28 @@ export default function LawDetailPage() {
     );
   });
 
-  const filteredRealCount = filteredArticles?.filter(a => !a.isChapterHeader).length ?? 0;
+  // 검색 결과 조문만 (네비게이션용 - 헤더 제외)
+  const searchResultArticles = filteredArticles?.filter(a => !a.isChapterHeader) ?? [];
+  const filteredRealCount = searchResultArticles.length;
+
+  // 검색어 변경 시 인덱스 초기화 + 첫 결과로 스크롤
+  useEffect(() => {
+    setSearchResultIdx(0);
+    articleRefs.current.clear();
+  }, [searchQuery]);
+
+  // 검색 결과 이동 (이전/다음)
+  const goToResult = useCallback((idx: number) => {
+    const total = filteredRealCount;
+    if (total === 0) return;
+    const next = (idx + total) % total;
+    setSearchResultIdx(next);
+    // 해당 조문으로 스크롤
+    const el = articleRefs.current.get(next);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [filteredRealCount]);
 
   // 장/절 헤더 클릭 시 해당 위치로 스크롤
   const scrollToChapter = (title: string) => {
@@ -166,14 +190,53 @@ export default function LawDetailPage() {
         </div>
 
         {/* 조문 검색 */}
-        <div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="조문 내용에서 검색..."
-            className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.shiftKey ? goToResult(searchResultIdx - 1) : goToResult(searchResultIdx + 1);
+                }
+                if (e.key === "Escape") setSearchQuery("");
+              }}
+              placeholder="조문 내용 검색 (Enter: 다음, Shift+Enter: 이전)"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-lg leading-none"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          {/* 이전/다음 버튼 (검색 중일 때만 표시) */}
+          {searchQuery && filteredRealCount > 0 && (
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => goToResult(searchResultIdx - 1)}
+                className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100 text-gray-600 text-sm"
+                title="이전 결과"
+              >
+                ▲
+              </button>
+              <span className="text-xs text-gray-500 w-14 text-center">
+                {searchResultIdx + 1} / {filteredRealCount}
+              </span>
+              <button
+                onClick={() => goToResult(searchResultIdx + 1)}
+                className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100 text-gray-600 text-sm"
+                title="다음 결과"
+              >
+                ▼
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 조문 목록 */}
@@ -182,23 +245,38 @@ export default function LawDetailPage() {
             전체 {realArticleCount}개 조문
             {searchQuery && ` · 검색 결과 ${filteredRealCount}개`}
           </p>
-          {filteredArticles?.map((article, idx) =>
-            article.isChapterHeader ? (
-              <ChapterHeader
-                key={`chapter-${idx}`}
-                title={article.content}
-              />
-            ) : (
-              <ArticleCard
-                key={`${article.articleNo}-${idx}`}
-                article={article}
-                lawId={lawId}
-                searchQuery={searchQuery}
-                defaultExpanded={settings.articleExpanded}
-              />
-            )
-          )}
-          {filteredArticles?.filter(a => !a.isChapterHeader).length === 0 && searchQuery && (
+          {(() => {
+            let resultIdx = -1; // 검색 결과 조문 인덱스 카운터
+            return filteredArticles?.map((article, idx) =>
+              article.isChapterHeader ? (
+                <ChapterHeader
+                  key={`chapter-${idx}`}
+                  title={article.content}
+                />
+              ) : (
+                (() => {
+                  if (searchQuery) resultIdx++;
+                  const currentResultIdx = resultIdx;
+                  const isFocused = searchQuery ? currentResultIdx === searchResultIdx : false;
+                  return (
+                    <ArticleCard
+                      key={`${article.articleNo}-${idx}`}
+                      article={article}
+                      lawId={lawId}
+                      lawName={detail.lawName}
+                      searchQuery={searchQuery}
+                      defaultExpanded={settings.articleExpanded}
+                      isFocused={isFocused}
+                      refCallback={(el) => {
+                        if (el && searchQuery) articleRefs.current.set(currentResultIdx, el);
+                      }}
+                    />
+                  );
+                })()
+              )
+            );
+          })()}
+          {filteredRealCount === 0 && searchQuery && (
             <p className="text-center text-gray-400 py-8">
               검색 결과가 없습니다.
             </p>
@@ -369,15 +447,23 @@ function ChapterHeader({ title }: { title: string }) {
 function ArticleCard({
   article,
   lawId,
+  lawName,
   searchQuery,
   defaultExpanded = false,
+  isFocused = false,
+  refCallback,
 }: {
   article: Article;
   lawId: string;
+  lawName: string;
   searchQuery: string;
   defaultExpanded?: boolean;
+  isFocused?: boolean;
+  refCallback?: (el: HTMLDivElement | null) => void;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const isArticleFav = isFavorite(lawId, article.articleNo);
 
   useEffect(() => {
     if (searchQuery) setExpanded(true);
@@ -385,30 +471,57 @@ function ArticleCard({
   }, [searchQuery, defaultExpanded]);
 
   const highlight = (text: string) => {
-    if (!searchQuery) return text;
-    const parts = text.split(new RegExp(`(${searchQuery})`, "gi"));
-    return parts.map((p, i) =>
-      p.toLowerCase() === searchQuery.toLowerCase() ? (
-        <mark key={i} className="bg-yellow-200 rounded px-0.5">{p}</mark>
-      ) : (
-        p
-      )
+    if (!searchQuery) return <>{text}</>;
+    const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+    return (
+      <>
+        {parts.map((p, i) =>
+          p.toLowerCase() === searchQuery.toLowerCase() ? (
+            <mark key={i} className="bg-yellow-200 rounded px-0.5">{p}</mark>
+          ) : (
+            p
+          )
+        )}
+      </>
     );
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div
+      ref={refCallback}
+      className={`rounded-lg border overflow-hidden transition-all ${
+        isFocused
+          ? "border-blue-400 shadow-md shadow-blue-100 bg-white"
+          : "border-gray-200 bg-white"
+      }`}
+    >
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
       >
-        <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded shrink-0">
+        <span className={`text-xs font-mono px-2 py-0.5 rounded shrink-0 ${
+          isFocused ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
+        }`}>
           제{article.articleNo}조
         </span>
         <span className="text-sm font-medium text-gray-900 flex-1 truncate">
           {highlight(article.articleTitle)}
         </span>
         <div className="flex items-center gap-2 shrink-0">
+          {/* 조문 즐겨찾기 버튼 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite(lawId, lawName, article.articleNo, article.articleTitle);
+            }}
+            title={isArticleFav ? "즐겨찾기 해제" : "이 조문 즐겨찾기"}
+            className={`text-base transition-colors ${
+              isArticleFav ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
+            }`}
+          >
+            {isArticleFav ? "⭐" : "☆"}
+          </button>
           <Link
             href={`/laws/${lawId}/${article.articleNo}`}
             onClick={(e) => e.stopPropagation()}
@@ -422,7 +535,7 @@ function ArticleCard({
       {expanded && (
         <div className="px-4 pb-4 border-t border-gray-100">
           <pre className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-sans mt-3">
-            {searchQuery ? highlight(article.content) : article.content}
+            {highlight(article.content)}
           </pre>
         </div>
       )}
