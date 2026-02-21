@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { SURVEY_LAWS, CATEGORY_TREE, lawHref } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
 import MyJobRecommend from "@/components/home/MyJobRecommend";
@@ -64,7 +64,7 @@ export default function HomePage() {
           {CATEGORY_TREE.map((cat) => (
             <div
               key={cat.id}
-              className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
+              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-4"
             >
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-2xl">{cat.icon}</span>
@@ -94,7 +94,7 @@ export default function HomePage() {
             전체 보기 →
           </Link>
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+        <div className="bg-white rounded-xl shadow-sm divide-y divide-gray-100">
           {SURVEY_LAWS.map((law) => (
             <Link
               key={law.id}

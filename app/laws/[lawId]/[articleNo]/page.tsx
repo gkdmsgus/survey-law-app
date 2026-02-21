@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -50,7 +50,7 @@ export default function ArticleDetailPage() {
           <div className="h-3.5 bg-gray-200 rounded w-12" />
         </div>
         {/* 조문 헤더 카드 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <div className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-2 flex-1">
               <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export default function ArticleDetailPage() {
           </div>
         </div>
         {/* 본문 카드 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-3">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-3.5 bg-gray-200 rounded" style={{ width: `${60 + (i * 17) % 40}%` }} />
           ))}
@@ -111,7 +111,7 @@ export default function ArticleDetailPage() {
       </nav>
 
       {/* 조문 헤더 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow p-5">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -136,7 +136,7 @@ export default function ArticleDetailPage() {
             />
             <Link
               href={lawHref(lawId, articleNo, "history")}
-              className="text-sm px-3 py-1.5 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50"
+              className="text-sm px-3 py-1.5 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-50"
             >
               개정이력
             </Link>
@@ -145,7 +145,7 @@ export default function ArticleDetailPage() {
       </div>
 
       {/* 조문 본문 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white rounded-2xl shadow-sm p-6">
         <div className="overflow-x-auto">
           <pre className="text-sm text-gray-800 whitespace-pre leading-loose font-sans min-w-0">
             {article.content}

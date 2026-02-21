@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
@@ -130,7 +130,7 @@ export default function LawDetailPage() {
           <div className="h-3.5 bg-gray-200 rounded w-32" />
         </div>
         {/* 법령 헤더 카드 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <div className="bg-white rounded-2xl shadow-sm p-5 space-y-3">
           <div className="flex items-center gap-2">
             <div className="h-5 bg-gray-200 rounded w-16" />
             <div className="h-5 bg-gray-200 rounded w-12" />
@@ -143,7 +143,7 @@ export default function LawDetailPage() {
         {/* 조문 카드들 */}
         <div className="h-3.5 bg-gray-200 rounded w-20" />
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-lg border border-gray-200 px-4 py-3 flex items-center gap-3">
+          <div key={i} className="bg-white rounded-xl shadow-sm px-4 py-3 flex items-center gap-3">
             <div className="h-5 bg-gray-200 rounded w-14 shrink-0" />
             <div className="h-4 bg-gray-200 rounded flex-1" style={{ width: `${55 + (i * 13) % 35}%` }} />
             <div className="h-4 bg-gray-200 rounded w-8 shrink-0" />
@@ -193,7 +193,7 @@ export default function LawDetailPage() {
         </nav>
 
         {/* 법령 헤더 */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-2xl shadow-sm p-5">
           <div className="flex items-start gap-3 justify-between flex-wrap">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">
@@ -247,7 +247,7 @@ export default function LawDetailPage() {
             <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={() => goToResult(searchResultIdx - 1)}
-                className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100 text-gray-600 text-sm"
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 text-gray-600 text-sm"
                 title="이전 결과"
               >
                 ▲
@@ -257,7 +257,7 @@ export default function LawDetailPage() {
               </span>
               <button
                 onClick={() => goToResult(searchResultIdx + 1)}
-                className="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 hover:bg-gray-100 text-gray-600 text-sm"
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 text-gray-600 text-sm"
                 title="다음 결과"
               >
                 ▼
@@ -529,10 +529,10 @@ function ArticleCard({
   return (
     <div
       ref={refCallback}
-      className={`rounded-lg border overflow-hidden transition-all ${
+      className={`rounded-xl overflow-hidden transition-all ${
         isFocused
-          ? "border-blue-400 shadow-md shadow-blue-100 bg-white"
-          : "border-gray-200 bg-white"
+          ? "ring-1 ring-blue-400 shadow-md shadow-blue-100 bg-white"
+          : "shadow-sm hover:shadow-md bg-white"
       }`}
     >
       <button

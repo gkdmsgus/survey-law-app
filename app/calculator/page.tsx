@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -146,7 +146,7 @@ export default function CalculatorPage() {
       </div>
 
       {/* 입력 패널 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+      <div className="bg-white rounded-2xl shadow-sm p-6 space-y-5">
 
         {/* ── 지적측량 ── */}
         {mode === "jijuk" && (
@@ -376,7 +376,7 @@ export default function CalculatorPage() {
       )}
 
       {/* 사용 안내 */}
-      <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 text-sm text-gray-600 space-y-1">
+      <div className="bg-gray-50 rounded-2xl shadow-sm p-4 text-sm text-gray-600 space-y-1">
         <p className="font-medium text-gray-800">📌 계산기 안내</p>
         <ul className="text-xs text-gray-500 space-y-1 mt-1 list-disc list-inside">
           <li>지적측량 시행규칙, GNSS측량규정, 공공측량 작업규정 기준값 적용</li>

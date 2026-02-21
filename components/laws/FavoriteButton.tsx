@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useFavorites } from "@/lib/hooks/useFavorites";
@@ -46,7 +46,7 @@ export default function FavoriteButton({
         onClick={handleClick}
         disabled={isWorking}
         title={active ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-        className={`inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-md border transition-colors disabled:opacity-60 ${
+        className={`inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-full border transition-colors disabled:opacity-60 ${
           active
             ? "bg-yellow-50 border-yellow-400 text-yellow-700 hover:bg-yellow-100"
             : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"

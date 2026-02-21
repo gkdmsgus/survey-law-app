@@ -28,7 +28,7 @@ export default function FavoritesPage() {
         {/* 즐겨찾기 아이템들 */}
         <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-lg border border-gray-200 p-4 flex items-start gap-3">
+            <div key={i} className="bg-white rounded-xl shadow-sm p-4 flex items-start gap-3">
               <div className="flex-1 space-y-2">
                 <div className="h-4 bg-gray-200 rounded" style={{ width: `${50 + (i * 19) % 35}%` }} />
                 <div className="h-3 bg-gray-200 rounded w-1/3" />
@@ -78,8 +78,8 @@ export default function FavoritesPage() {
             .map((fav) => (
             <div
               key={fav.id}
-              className={`bg-white rounded-lg border p-4 flex items-start gap-3 ${
-                fav.hasChanges ? "border-red-300" : "border-gray-200"
+              className={`bg-white rounded-xl p-4 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow ${
+                fav.hasChanges ? "ring-1 ring-red-300" : ""
               }`}
             >
               <div className="flex-1 min-w-0">

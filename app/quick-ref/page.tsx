@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { lawHref } from "@/lib/constants/laws";
 
 // ── 수치 참조 데이터 ──────────────────────────────────────────────
@@ -223,7 +223,7 @@ export default function QuickRefPage() {
           return (
             <div
               key={card.id}
-              className={`bg-white rounded-xl border overflow-hidden shadow-sm ${c.header}`}
+              className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow`}
             >
               {/* 카드 헤더 */}
               <div className={`px-4 py-3 border-b ${c.header}`}>
@@ -299,7 +299,7 @@ export default function QuickRefPage() {
       </div>
 
       {/* 하단 안내 */}
-      <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 text-sm text-gray-600 space-y-1">
+      <div className="bg-gray-50 rounded-2xl shadow-sm p-4 text-sm text-gray-600 space-y-1">
         <p className="font-medium text-gray-800">📌 사용 안내</p>
         <ul className="text-xs text-gray-500 space-y-1 mt-1 list-disc list-inside">
           <li>수치는 참고용이며, 법령 개정 시 변경될 수 있습니다.</li>

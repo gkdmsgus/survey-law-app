@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSettingsContext } from "@/lib/providers/SettingsProvider";
 import Link from "next/link";
@@ -46,7 +46,7 @@ export default function SettingsPage() {
         <div className="h-7 bg-gray-200 rounded w-20" />
         {/* 설정 섹션 카드들 */}
         {[3, 2, 2, 5].map((rows, i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <div key={i} className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
             {/* 섹션 제목 */}
             <div className="h-5 bg-gray-200 rounded w-28" />
             <div className="h-px bg-gray-100" />
@@ -89,7 +89,7 @@ export default function SettingsPage() {
       </div>
 
       {/* ── 1. 화면 표시 ── */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">🖥️ 화면 표시</h2>
         </div>
@@ -133,7 +133,7 @@ export default function SettingsPage() {
                 <button
                   key={size}
                   onClick={() => updateSetting("fontSize", size)}
-                  className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                  className={`px-3 py-1.5 text-xs rounded-full font-medium transition-colors ${
                     settings.fontSize === size
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -176,7 +176,7 @@ export default function SettingsPage() {
       </section>
 
       {/* ── 2. 알림 ── */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">🔔 알림</h2>
         </div>
@@ -211,7 +211,7 @@ export default function SettingsPage() {
                   key={sec}
                   onClick={() => updateSetting("pollInterval", sec)}
                   disabled={!settings.notificationsEnabled}
-                  className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                  className={`px-3 py-1.5 text-xs rounded-full font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
                     settings.pollInterval === sec
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -226,7 +226,7 @@ export default function SettingsPage() {
       </section>
 
       {/* ── 3. 즐겨찾기 ── */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">⭐ 즐겨찾기</h2>
         </div>
@@ -239,7 +239,7 @@ export default function SettingsPage() {
             <div className="flex gap-1.5">
               <button
                 onClick={() => updateSetting("favoritesSort", "recent")}
-                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                className={`px-3 py-1.5 text-xs rounded-full font-medium transition-colors ${
                   settings.favoritesSort === "recent"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -249,7 +249,7 @@ export default function SettingsPage() {
               </button>
               <button
                 onClick={() => updateSetting("favoritesSort", "name")}
-                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                className={`px-3 py-1.5 text-xs rounded-full font-medium transition-colors ${
                   settings.favoritesSort === "name"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -263,7 +263,7 @@ export default function SettingsPage() {
       </section>
 
       {/* ── 4. 내 업무 분야 ── */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">💼 내 업무 분야</h2>
           <p className="text-xs text-gray-500 mt-1">
@@ -298,7 +298,7 @@ export default function SettingsPage() {
       </section>
 
       {/* ── 5. 초기화 ── */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">🔄 설정 초기화</h2>
         </div>
@@ -312,7 +312,7 @@ export default function SettingsPage() {
                 resetSettings();
               }
             }}
-            className="px-4 py-2 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors font-medium"
+            className="px-4 py-2 text-sm text-red-600 border border-red-300 rounded-full hover:bg-red-50 transition-colors font-medium"
           >
             모든 설정 초기화
           </button>

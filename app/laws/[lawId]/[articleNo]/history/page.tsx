@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -60,7 +60,7 @@ export default function ArticleHistoryPage() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white rounded-2xl shadow-sm p-6">
         {isLoading ? (
           <div className="animate-pulse space-y-4">
             {/* 버전 선택 드롭다운 영역 */}

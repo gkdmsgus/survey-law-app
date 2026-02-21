@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -147,7 +147,7 @@ function SearchPageContent() {
                   <Link
                     key={i}
                     href={lawHref(r.lawId, r.articleNo)}
-                    className="block bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
+                    className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-4"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
@@ -176,7 +176,7 @@ function SearchPageContent() {
               <h2 className="text-base font-semibold text-gray-700 mb-3">
                 법령 ({apiResults.length}건)
               </h2>
-              <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+              <div className="bg-white rounded-xl shadow-sm divide-y divide-gray-100">
                 {apiResults.map((r, i) => (
                   <Link
                     key={i}

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { SURVEY_LAWS, CATEGORY_TREE, lawHref } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
 
@@ -27,7 +27,7 @@ export default function LawsPage() {
               <LawTypeBadge type={type} />
               <h2 className="text-base font-semibold text-gray-700">{type}</h2>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+            <div className="bg-white rounded-xl shadow-sm divide-y divide-gray-100">
               {typeGroups[type].map((law) => (
                 <Link
                   key={law.id}
@@ -61,7 +61,7 @@ export default function LawsPage() {
           {CATEGORY_TREE.map((cat) => (
             <div
               key={cat.id}
-              className="bg-white rounded-lg border border-gray-200 p-4"
+              className="bg-white rounded-xl shadow-sm p-4"
             >
               <div className="flex items-center gap-2 mb-3">
                 <span>{cat.icon}</span>
