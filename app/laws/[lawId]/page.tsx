@@ -231,9 +231,27 @@ function TableOfContents({
 
   return (
     <>
-      {/* ── 데스크탑: 오른쪽 고정 패널 ── */}
-      <div className="hidden lg:block fixed right-6 top-28 z-30 w-52">
-        <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden">
+      {/* ── 데스크탑: 오른쪽 고정, 호버 시 패널 슬라이드 ── */}
+      <div className="hidden lg:block fixed right-0 top-1/3 z-30 group">
+        {/* 평소: 짧은 선들만 표시 */}
+        <div className="flex flex-col items-end gap-1 py-3 px-2 cursor-pointer group-hover:opacity-0 group-hover:pointer-events-none transition-opacity duration-200">
+          {chapters.slice(0, Math.min(chapters.length, 8)).map((ch, i) => {
+            const indent = getIndent(ch.content.trim());
+            const isActive = activeChapter === ch.content.trim();
+            return (
+              <div
+                key={i}
+                style={{ width: `${28 - indent * 6}px` }}
+                className={`h-[3px] rounded-full transition-colors ${
+                  isActive ? "bg-gray-700" : "bg-gray-300"
+                }`}
+              />
+            );
+          })}
+        </div>
+
+        {/* 호버 시: 전체 패널 슬라이드 인 */}
+        <div className="absolute right-0 top-0 w-52 bg-white border border-gray-200 rounded-l-xl shadow-xl overflow-hidden opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 translate-x-4 group-hover:translate-x-0">
           {/* 헤더 */}
           <div className="flex items-center gap-1.5 px-3 py-2.5 border-b border-gray-100 bg-gray-50">
             <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
