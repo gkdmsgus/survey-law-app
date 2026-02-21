@@ -92,21 +92,87 @@ function buildSubArticles(hang: unknown): string {
     .join("");
 }
 
-/** 행정규칙(고시/훈령) XML 파싱 */
+/** 행정규칙(고시/훈령) XML 파싱
+ * 실제 API 응답 루트 태그: <AdmRulService>
+ * 기본정보: <행정규칙기본정보> 하위
+ * 조문: 루트 바로 아래 flat <조문내용> 배열 (조문번호 내용에 포함)
+ */
 export function parseAdminRuleDetailXml(xml: string): LawDetail | null {
   const obj = parser.parse(xml);
-  // 행정규칙 XML 루트는 "행정규칙" 또는 "AdminRule"
-  const rule = obj?.행정규칙 ?? obj?.AdminRule;
+  // 실제 API 응답 루트는 AdmRulService
+  const rule = obj?.AdmRulService ?? obj?.행정규칙 ?? obj?.AdminRule;
   if (!rule) return null;
 
-  const basicInfo = rule["기본정보"] ?? rule;
-  const lawId = String(basicInfo["행정규칙ID"] ?? basicInfo["ID"] ?? "");
-  const lawName = String(basicInfo["행정규칙명"] ?? basicInfo["법령명"] ?? "");
-  const revisionDate = String(basicInfo["발령일자"] ?? basicInfo["개정일자"] ?? "");
+  const basicInfo = rule["행정규칙기본정보"] ?? rule["기본정보"] ?? rule;
+  const lawId = String(
+    basicInfo["행정규칙일련번호"] ?? basicInfo["행정규칙ID"] ?? basicInfo["ID"] ?? ""
+  );
+  const lawName = String(
+    basicInfo["행정규칙명"] ?? basicInfo["법령명"] ?? ""
+  );
+  const revisionDate = String(
+    basicInfo["발령일자"] ?? basicInfo["개정일자"] ?? ""
+  );
   const enforcementDate = String(basicInfo["시행일자"] ?? revisionDate);
-  const department = String(basicInfo["발령기관명"] ?? basicInfo["소관부처명"] ?? "");
+  const department = String(
+    basicInfo["소관부처명"] ?? basicInfo["발령기관명"] ?? ""
+  );
 
-  // 조문 파싱 (행정규칙은 "조문" 또는 "규정" 구조)
+  // 조문 파싱 방식 1: AdmRulService의 flat <조문내용> 배열
+  const flatContents = rule["조문내용"];
+
+  if (flatContents !== undefined) {
+    // flat 구조: 조문내용이 루트 바로 아래에 배열로 존재
+    const contents = toArray(flatContents) as (string | number | Record<string, unknown>)[];
+    const articles: Article[] = contents
+      .map((raw, idx) => {
+        const text = sanitizeContent(String(raw));
+        if (!text) return null;
+
+        // 장/절/관 구분자 판별: "제N장", "제N절", "제N관" 또는 숫자 없이 "총칙" 등
+        const isChapterHeader =
+          /^제\d+장/.test(text) ||
+          /^제\d+절/.test(text) ||
+          /^제\d+관/.test(text) ||
+          /^부\s*칙/.test(text) ||
+          // 조문번호("제N조")로 시작하지 않는 짧은 텍스트 (장/절 제목)
+          (!/^제\d+조/.test(text) && text.length < 30 && idx > 0);
+
+        // 조문번호 추출 ("제1조(목적)" → "1", "제1조의2" → "1의2")
+        const articleNoMatch = text.match(/^제(\d+조(?:의\d+)?)/);
+        const articleNo = articleNoMatch ? articleNoMatch[1] : String(idx + 1);
+
+        // 제목: 첫 줄 (조문번호+괄호 제목 포함)
+        const firstLine = text.split("\n")[0];
+        const articleTitle = isChapterHeader
+          ? text
+          : firstLine.slice(0, 50) || `조문 ${idx + 1}`;
+
+        const article: Article = {
+          lawId,
+          lawName,
+          articleNo,
+          articleTitle,
+          content: text,
+          revisionDate,
+          isChapterHeader,
+        };
+        return article;
+      })
+      .filter((a): a is Article => a !== null && (!!a.isChapterHeader || !isDeletedArticle(a.content)));
+
+    return {
+      lawId,
+      lawName,
+      lawType: String(basicInfo["행정규칙구분"] ?? basicInfo["법령구분명"] ?? "행정규칙"),
+      revisionDate,
+      enforcementDate,
+      department,
+      articles,
+    };
+  }
+
+  // 조문 파싱 방식 2: 기존 조문단위 구조 (폴백)
   const joUnit = rule["조문"]?.["조문단위"] ?? rule["규정"]?.["조문단위"];
   const articles = toArray(joUnit)
     .map((jo: Record<string, unknown>, idx: number) => {
@@ -128,7 +194,6 @@ export function parseAdminRuleDetailXml(xml: string): LawDetail | null {
         isChapterHeader,
       };
     })
-    // 삭제된 조문 필터링
     .filter((a) => a.isChapterHeader || !isDeletedArticle(a.content));
 
   return {
