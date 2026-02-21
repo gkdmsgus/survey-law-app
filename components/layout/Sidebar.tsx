@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CATEGORY_TREE, type CategoryNode } from "@/lib/constants/laws";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const NAV_ITEMS = [
   { href: "/", label: "홈", icon: "🏠" },
@@ -24,29 +24,40 @@ export default function Sidebar() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return;
     const dx = touchStartX.current - e.changedTouches[0].clientX;
-    if (dx > 60) setMobileOpen(false); // 왼쪽으로 60px 이상 스와이프 → 닫기
+    if (dx > 60) setMobileOpen(false);
     touchStartX.current = null;
   };
+
+  // 현재 법령 페이지의 lawId 추출 (/laws/[lawId] 또는 /laws/[lawId]/...)
+  const lawIdMatch = pathname.match(/^\/laws\/([^/]+)/);
+  const activeLawId = lawIdMatch ? lawIdMatch[1] : null;
+
+  const isLawsActive = pathname === "/laws" || pathname.startsWith("/laws/");
 
   const sidebarContent = (
     <>
       {/* 기본 메뉴 */}
       <nav className="p-3 border-b border-gray-200">
-        {NAV_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              pathname === item.href
-                ? "bg-blue-100 text-blue-700"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <span>{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const isActive = item.href === "/"
+            ? pathname === "/"
+            : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-blue-50 text-blue-700 border-l-[3px] border-blue-500 pl-[9px]"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <span>{item.icon}</span>
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       {/* 카테고리 트리 */}
@@ -55,7 +66,12 @@ export default function Sidebar() {
           측량 기준 찾기
         </p>
         {CATEGORY_TREE.map((node) => (
-          <CategoryTreeNode key={node.id} node={node} onNavigate={() => setMobileOpen(false)} />
+          <CategoryTreeNode
+            key={node.id}
+            node={node}
+            activeLawId={activeLawId}
+            onNavigate={() => setMobileOpen(false)}
+          />
         ))}
       </div>
 
@@ -64,7 +80,11 @@ export default function Sidebar() {
         <Link
           href="/laws"
           onClick={() => setMobileOpen(false)}
-          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100"
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+            pathname === "/laws"
+              ? "bg-blue-50 text-blue-700 font-medium border-l-[3px] border-blue-500 pl-[9px]"
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
         >
           <span>📚</span>
           전체 법령 목록
@@ -75,7 +95,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* 모바일 햄버거 버튼 - 메뉴 닫혔을 때만 표시 */}
+      {/* 모바일 햄버거 버튼 */}
       {!mobileOpen && (
         <button
           className="md:hidden fixed bottom-4 right-4 z-50 bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg text-xl"
@@ -122,19 +142,45 @@ export default function Sidebar() {
   );
 }
 
-function CategoryTreeNode({ node, onNavigate }: { node: CategoryNode; onNavigate: () => void }) {
-  const [open, setOpen] = useState(false);
+function CategoryTreeNode({
+  node,
+  activeLawId,
+  onNavigate,
+}: {
+  node: CategoryNode;
+  activeLawId: string | null;
+  onNavigate: () => void;
+}) {
   const hasChildren = node.children && node.children.length > 0;
+
+  // 이 노드 하위에 현재 활성 법령이 있는지 확인
+  const isChildActive = hasChildren
+    ? node.children!.some((child) => child.lawId === activeLawId)
+    : false;
+
+  const [open, setOpen] = useState(isChildActive);
+
+  // pathname 변경 시 활성 자식이 있으면 자동으로 열기
+  useEffect(() => {
+    if (isChildActive) setOpen(true);
+  }, [isChildActive]);
 
   if (!hasChildren) {
     const href = node.lawId ? `/laws/${node.lawId}` : "#";
+    const isActive = node.lawId === activeLawId;
     return (
       <Link
         href={href}
         onClick={onNavigate}
-        className="flex items-center gap-1.5 pl-6 pr-2 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md"
+        className={`flex items-center gap-1.5 pl-5 pr-2 py-1.5 text-sm rounded-md transition-colors ${
+          isActive
+            ? "text-blue-700 font-semibold bg-blue-50 border-l-[3px] border-blue-500 pl-[17px]"
+            : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+        }`}
       >
-        <span className="text-gray-400">└</span>
+        <span className={isActive ? "text-blue-400" : "text-gray-400"}>
+          {isActive ? "▶" : "└"}
+        </span>
         {node.label}
       </Link>
     );
@@ -144,16 +190,27 @@ function CategoryTreeNode({ node, onNavigate }: { node: CategoryNode; onNavigate
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
+        className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+          isChildActive
+            ? "text-blue-700 bg-blue-50"
+            : "text-gray-700 hover:bg-gray-100"
+        }`}
       >
         <span>{node.icon}</span>
         <span className="flex-1 text-left">{node.label}</span>
-        <span className="text-gray-400 text-xs">{open ? "▲" : "▼"}</span>
+        <span className={`text-xs ${isChildActive ? "text-blue-400" : "text-gray-400"}`}>
+          {open ? "▲" : "▼"}
+        </span>
       </button>
       {open && (
         <div className="ml-2">
           {node.children!.map((child) => (
-            <CategoryTreeNode key={child.id} node={child} onNavigate={onNavigate} />
+            <CategoryTreeNode
+              key={child.id}
+              node={child}
+              activeLawId={activeLawId}
+              onNavigate={onNavigate}
+            />
           ))}
         </div>
       )}
