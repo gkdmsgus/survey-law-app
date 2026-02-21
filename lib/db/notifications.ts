@@ -2,6 +2,7 @@ import { getSql } from "./schema";
 import type { Notification } from "../api/types";
 
 export async function createChangeNotification(
+  userId: string,
   lawId: string,
   lawName: string,
   articleNo: string | null,
@@ -14,8 +15,8 @@ export async function createChangeNotification(
 
   await sql`
     INSERT INTO notifications
-      (favorite_id, law_id, law_name, article_no, message, old_revision_date, new_revision_date, created_at)
-    VALUES (${favoriteId}, ${lawId}, ${lawName}, ${articleNo}, ${message}, ${oldRevDate}, ${newRevDate}, ${Date.now()})
+      (user_id, favorite_id, law_id, law_name, article_no, message, old_revision_date, new_revision_date, created_at)
+    VALUES (${userId}, ${favoriteId}, ${lawId}, ${lawName}, ${articleNo}, ${message}, ${oldRevDate}, ${newRevDate}, ${Date.now()})
   `;
 }
 
@@ -26,12 +27,13 @@ export async function createChangeNotificationsForLaw(
   newRevDate: string
 ): Promise<void> {
   const sql = getSql();
-  const favorites = await sql<Array<{ id: number; article_no: string | null }>>`
-    SELECT id, article_no FROM favorites WHERE law_id = ${lawId}
+  const favorites = await sql<Array<{ id: number; article_no: string | null; user_id: string }>>`
+    SELECT id, article_no, user_id FROM favorites WHERE law_id = ${lawId} AND user_id IS NOT NULL
   `;
 
   for (const fav of favorites) {
     await createChangeNotification(
+      fav.user_id,
       lawId,
       lawName,
       fav.article_no,
@@ -40,48 +42,46 @@ export async function createChangeNotificationsForLaw(
       fav.id
     );
   }
-
-  if (favorites.length === 0) {
-    await createChangeNotification(lawId, lawName, null, oldRevDate, newRevDate);
-  }
 }
 
 export async function getNotifications(
+  userId: string,
   unreadOnly: boolean = false,
   limit: number = 50
 ): Promise<Notification[]> {
   const sql = getSql();
   const rows = unreadOnly
     ? await sql<Array<Record<string, unknown>>>`
-        SELECT * FROM notifications WHERE is_read = 0 ORDER BY created_at DESC LIMIT ${limit}
+        SELECT * FROM notifications WHERE user_id = ${userId} AND is_read = 0 ORDER BY created_at DESC LIMIT ${limit}
       `
     : await sql<Array<Record<string, unknown>>>`
-        SELECT * FROM notifications ORDER BY created_at DESC LIMIT ${limit}
+        SELECT * FROM notifications WHERE user_id = ${userId} ORDER BY created_at DESC LIMIT ${limit}
       `;
   return rows.map(mapNotification);
 }
 
-export async function getUnreadCount(): Promise<number> {
+export async function getUnreadCount(userId: string): Promise<number> {
   const sql = getSql();
   const rows = await sql<Array<{ cnt: string }>>`
-    SELECT COUNT(*) as cnt FROM notifications WHERE is_read = 0
+    SELECT COUNT(*) as cnt FROM notifications WHERE user_id = ${userId} AND is_read = 0
   `;
   return Number(rows[0]?.cnt ?? 0);
 }
 
-export async function markNotificationRead(id: number): Promise<void> {
+export async function markNotificationRead(id: number, userId: string): Promise<void> {
   const sql = getSql();
-  await sql`UPDATE notifications SET is_read = 1 WHERE id = ${id}`;
+  await sql`UPDATE notifications SET is_read = 1 WHERE id = ${id} AND user_id = ${userId}`;
 }
 
-export async function markAllNotificationsRead(): Promise<void> {
+export async function markAllNotificationsRead(userId: string): Promise<void> {
   const sql = getSql();
-  await sql`UPDATE notifications SET is_read = 1`;
+  await sql`UPDATE notifications SET is_read = 1 WHERE user_id = ${userId}`;
 }
 
 function mapNotification(row: Record<string, unknown>): Notification {
   return {
     id: row.id as number,
+    userId: row.user_id as string,
     favoriteId: row.favorite_id ? (row.favorite_id as number) : null,
     lawId: row.law_id as string,
     lawName: row.law_name as string,

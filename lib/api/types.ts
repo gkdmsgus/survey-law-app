@@ -46,6 +46,7 @@ export interface ArticleSnapshot {
 
 export interface Favorite {
   id: number;
+  userId: string;
   lawId: string;
   lawName: string;
   articleNo: string | null;
@@ -57,6 +58,7 @@ export interface Favorite {
 
 export interface Notification {
   id: number;
+  userId: string;
   favoriteId: number | null;
   lawId: string;
   lawName: string;

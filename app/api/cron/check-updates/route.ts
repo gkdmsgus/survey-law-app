@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getLawGoClient } from '@/lib/api/lawgo-client';
-import { getAllFavorites } from '@/lib/db/favorites';
+import { getAllFavoritesInternal } from '@/lib/db/favorites';
 import { getCachedLaw, invalidateCache, upsertLawCache } from '@/lib/db/cache';
 import { markFavoritesChanged } from '@/lib/db/favorites';
 import { createChangeNotificationsForLaw } from '@/lib/db/notifications';
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const favorites = await getAllFavorites();
+  const favorites = await getAllFavoritesInternal();
   const uniqueLawIds = [...new Set(favorites.map((f) => f.lawId))];
   const client = getLawGoClient();
   const results: Array<{ lawId: string; changed: boolean; error?: string }> = [];
