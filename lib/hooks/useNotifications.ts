@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Notification } from "../api/types";
 
-const POLL_INTERVAL = 30_000; // 30초
-
-export function useNotifications() {
+export function useNotifications(
+  notificationsEnabled: boolean = true,
+  pollInterval: number = 30000
+) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -22,15 +23,16 @@ export function useNotifications() {
     }
   }, []);
 
-  // 초기 로드 + polling
+  // 초기 로드 + polling (enabled & interval 반영)
   useEffect(() => {
+    if (!notificationsEnabled) return;
     fetchNotifications();
     const interval = setInterval(
       () => fetchNotifications(true),
-      POLL_INTERVAL
+      pollInterval
     );
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, notificationsEnabled, pollInterval]);
 
   const markAsRead = useCallback(async (id: number) => {
     await fetch(`/api/notifications/${id}/read`, { method: "PATCH" });

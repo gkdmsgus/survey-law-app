@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useFavorites } from "@/lib/hooks/useFavorites";
+import { useSettingsContext } from "@/lib/providers/SettingsProvider";
 import ChangeBadge from "@/components/laws/ChangeBadge";
 import { formatTimestamp } from "@/lib/utils/date";
 
 export default function FavoritesPage() {
   const { favorites, isLoading, removeFavorite } = useFavorites();
+  const { settings } = useSettingsContext();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -50,7 +52,15 @@ export default function FavoritesPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {favorites.map((fav) => (
+          {[...favorites]
+            .sort((a, b) => {
+              if (settings.favoritesSort === "name") {
+                return a.lawName.localeCompare(b.lawName, "ko");
+              }
+              // recent: 최근 추가순 (createdAt 내림차순)
+              return b.createdAt - a.createdAt;
+            })
+            .map((fav) => (
             <div
               key={fav.id}
               className={`bg-white rounded-lg border p-4 flex items-start gap-3 ${

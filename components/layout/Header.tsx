@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useNotifications } from "@/lib/hooks/useNotifications";
+import { useSettingsContext } from "@/lib/providers/SettingsProvider";
 import { relativeTime } from "@/lib/utils/date";
 
 export default function Header() {
@@ -14,8 +15,12 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { data: session, status } = useSession();
+  const { settings } = useSettingsContext();
   const { unreadCount, notifications, markAsRead, markAllRead, refresh } =
-    useNotifications();
+    useNotifications(
+      settings.notificationsEnabled,
+      settings.pollInterval * 1000
+    );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,6 +240,13 @@ export default function Header() {
                       onClick={() => setMenuOpen(false)}
                     >
                       ⭐ 즐겨찾기
+                    </Link>
+                    <Link
+                      href="/settings"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      ⚙️ 설정
                     </Link>
                     <button
                       onClick={() => { setMenuOpen(false); signOut(); }}

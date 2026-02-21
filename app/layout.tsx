@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import AuthProvider from "@/components/providers/SessionProvider";
+import { SettingsProvider } from "@/lib/providers/SettingsProvider";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -24,13 +25,15 @@ export default function RootLayout({
     <html lang="ko" className="light" style={{ colorScheme: "light" }}>
       <body className={`${geist.variable} antialiased bg-gray-50`}>
         <AuthProvider>
-          <div className="flex flex-col h-screen overflow-hidden">
-            <Header />
-            <div className="flex flex-1 overflow-hidden">
-              <Sidebar />
-              <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+          <SettingsProvider>
+            <div className="flex flex-col h-screen overflow-hidden">
+              <Header />
+              <div className="flex flex-1 overflow-hidden">
+                <Sidebar />
+                <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
+              </div>
             </div>
-          </div>
+          </SettingsProvider>
         </AuthProvider>
       </body>
     </html>

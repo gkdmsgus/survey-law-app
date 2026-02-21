@@ -8,10 +8,12 @@ import LawTypeBadge from "@/components/laws/LawTypeBadge";
 import ChangeBadge from "@/components/laws/ChangeBadge";
 import FavoriteButton from "@/components/laws/FavoriteButton";
 import { formatLawDate } from "@/lib/utils/date";
+import { useSettingsContext } from "@/lib/providers/SettingsProvider";
 import type { LawDetail, Article } from "@/lib/api/types";
 
 export default function LawDetailPage() {
   const { lawId } = useParams<{ lawId: string }>();
+  const { settings } = useSettingsContext();
   const [detail, setDetail] = useState<LawDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -192,6 +194,7 @@ export default function LawDetailPage() {
                 article={article}
                 lawId={lawId}
                 searchQuery={searchQuery}
+                defaultExpanded={settings.articleExpanded}
               />
             )
           )}
@@ -367,17 +370,19 @@ function ArticleCard({
   article,
   lawId,
   searchQuery,
+  defaultExpanded = false,
 }: {
   article: Article;
   lawId: string;
   searchQuery: string;
+  defaultExpanded?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   useEffect(() => {
     if (searchQuery) setExpanded(true);
-    else setExpanded(false);
-  }, [searchQuery]);
+    else setExpanded(defaultExpanded);
+  }, [searchQuery, defaultExpanded]);
 
   const highlight = (text: string) => {
     if (!searchQuery) return text;

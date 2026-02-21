@@ -75,8 +75,8 @@ export default function Sidebar() {
         ))}
       </div>
 
-      {/* 법령 목록 바로가기 */}
-      <div className="p-3 border-t border-gray-200 mt-auto">
+      {/* 법령 목록 바로가기 + 설정 */}
+      <div className="p-3 border-t border-gray-200 mt-auto space-y-1">
         <Link
           href="/laws"
           onClick={() => setMobileOpen(false)}
@@ -88,6 +88,18 @@ export default function Sidebar() {
         >
           <span>📚</span>
           전체 법령 목록
+        </Link>
+        <Link
+          href="/settings"
+          onClick={() => setMobileOpen(false)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+            pathname === "/settings"
+              ? "bg-blue-50 text-blue-700 font-medium border-l-[3px] border-blue-500 pl-[9px]"
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <span>⚙️</span>
+          설정
         </Link>
       </div>
     </>

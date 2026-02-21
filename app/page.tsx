@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { SURVEY_LAWS, CATEGORY_TREE } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
+import MyJobRecommend from "@/components/home/MyJobRecommend";
 
 export default function HomePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {/* 내 업무 분야 추천 (설정에서 선택 시 최상단 표시) */}
+      <MyJobRecommend />
+
       {/* 헤더 */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">측량 법령 기준 조회</h1>
