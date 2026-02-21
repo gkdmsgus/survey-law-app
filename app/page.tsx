@@ -40,6 +40,21 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* 수치 빠른 참조 배너 */}
+      <Link
+        href="/quick-ref"
+        className="flex items-center gap-4 bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl p-4 text-white hover:from-slate-600 hover:to-slate-500 transition-all group"
+      >
+        <span className="text-3xl">📊</span>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm">수치 빠른 참조</p>
+          <p className="text-xs text-slate-300 mt-0.5">
+            허용오차·장비기준·처리기간 — 핵심 수치를 한 눈에
+          </p>
+        </div>
+        <span className="text-slate-400 group-hover:text-white transition-colors">→</span>
+      </Link>
+
       {/* 카테고리 바로가기 */}
       <div>
         <h2 className="text-lg font-semibold text-gray-800 mb-3">
