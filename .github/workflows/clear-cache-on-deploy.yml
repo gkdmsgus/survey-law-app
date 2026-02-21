@@ -1,0 +1,16 @@
+name: Clear Cache After Deploy
+
+on:
+  deployment_status:
+
+jobs:
+  clear-cache:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear law cache
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.VERCEL_APP_URL }}/api/admin/clear-cache"
