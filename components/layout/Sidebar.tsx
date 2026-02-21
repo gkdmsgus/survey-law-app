@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { CATEGORY_TREE, type CategoryNode } from "@/lib/constants/laws";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 
 const NAV_ITEMS = [
   { href: "/", label: "홈", icon: "🏠" },
@@ -12,27 +12,21 @@ const NAV_ITEMS = [
   { href: "/notifications", label: "알림", icon: "🔔" },
 ];
 
-export default function Sidebar() {
+function SidebarInner({
+  mobileOpen,
+  setMobileOpen,
+}: {
+  mobileOpen: boolean;
+  setMobileOpen: (v: boolean) => void;
+}) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  // 스와이프 감지
-  const touchStartX = useRef<number | null>(null);
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const dx = touchStartX.current - e.changedTouches[0].clientX;
-    if (dx > 60) setMobileOpen(false);
-    touchStartX.current = null;
-  };
+  const searchParams = useSearchParams();
 
   // 현재 법령 페이지의 lawId 추출 (/laws/[lawId] 또는 /laws/[lawId]/...)
   const lawIdMatch = pathname.match(/^\/laws\/([^/]+)/);
   const activeLawId = lawIdMatch ? lawIdMatch[1] : null;
-
-  const isLawsActive = pathname === "/laws" || pathname.startsWith("/laws/");
+  // ?cat= 파라미터로 카테고리 아이템 구별
+  const activeCatId = searchParams.get("cat");
 
   const sidebarContent = (
     <>
@@ -70,6 +64,7 @@ export default function Sidebar() {
             key={node.id}
             node={node}
             activeLawId={activeLawId}
+            activeCatId={activeCatId}
             onNavigate={() => setMobileOpen(false)}
           />
         ))}
@@ -104,6 +99,24 @@ export default function Sidebar() {
       </div>
     </>
   );
+
+  return <>{sidebarContent}</>;
+}
+
+export default function Sidebar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // 스와이프 감지
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = touchStartX.current - e.changedTouches[0].clientX;
+    if (dx > 60) setMobileOpen(false);
+    touchStartX.current = null;
+  };
 
   return (
     <>
@@ -142,13 +155,17 @@ export default function Sidebar() {
               ✕
             </button>
           </div>
-          {sidebarContent}
+          <Suspense>
+            <SidebarInner mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+          </Suspense>
         </aside>
       )}
 
       {/* 데스크탑 사이드바 */}
       <aside className="hidden md:flex w-60 shrink-0 border-r border-gray-200 bg-gray-50 flex-col h-full overflow-y-auto">
-        {sidebarContent}
+        <Suspense>
+          <SidebarInner mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+        </Suspense>
       </aside>
     </>
   );
@@ -157,29 +174,40 @@ export default function Sidebar() {
 function CategoryTreeNode({
   node,
   activeLawId,
+  activeCatId,
   onNavigate,
 }: {
   node: CategoryNode;
   activeLawId: string | null;
+  activeCatId: string | null;
   onNavigate: () => void;
 }) {
   const hasChildren = node.children && node.children.length > 0;
 
-  // 이 노드 하위에 현재 활성 법령이 있는지 확인
+  // 이 노드 하위에 현재 활성 카테고리가 있는지 확인
+  // activeCatId가 있으면 catId 기준, 없으면 lawId 기준 (fallback)
   const isChildActive = hasChildren
-    ? node.children!.some((child) => child.lawId === activeLawId)
+    ? node.children!.some((child) =>
+        activeCatId
+          ? child.id === activeCatId
+          : child.lawId === activeLawId
+      )
     : false;
 
   const [open, setOpen] = useState(isChildActive);
 
-  // pathname 변경 시 활성 자식이 있으면 자동으로 열기
+  // 활성 자식이 있으면 자동으로 열기
   useEffect(() => {
     if (isChildActive) setOpen(true);
   }, [isChildActive]);
 
   if (!hasChildren) {
-    const href = node.lawId ? `/laws/${node.lawId}` : "#";
-    const isActive = node.lawId === activeLawId;
+    // 링크에 ?cat=노드id 추가해서 같은 lawId 내 카테고리를 구별
+    const href = node.lawId ? `/laws/${node.lawId}?cat=${node.id}` : "#";
+    // activeCatId가 있으면 catId로 판단, 없으면 lawId로 판단
+    const isActive = activeCatId
+      ? node.id === activeCatId
+      : node.lawId === activeLawId;
     return (
       <Link
         href={href}
@@ -221,6 +249,7 @@ function CategoryTreeNode({
               key={child.id}
               node={child}
               activeLawId={activeLawId}
+              activeCatId={activeCatId}
               onNavigate={onNavigate}
             />
           ))}
