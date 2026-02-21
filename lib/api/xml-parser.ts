@@ -29,34 +29,42 @@ export function parseLawSearchXml(xml: string): LawSearchResult[] {
   }));
 }
 
+/** 삭제된 조문 여부 판별 (예: "제29조 삭제 <2021.2.9>") */
+function isDeletedArticle(content: string): boolean {
+  return /^제\d+조\s*(의\d+)?\s*삭제/.test(content.trim());
+}
+
 export function parseLawDetailXml(xml: string): LawDetail | null {
   const obj = parser.parse(xml);
   const law = obj?.법령;
   if (!law) return null;
 
   const basicInfo = law["기본정보"];
-  const articles = toArray(law["조문"]?.["조문단위"]).map(
-    (jo: Record<string, unknown>, idx: number) => {
-      const isChapterHeader = String(jo["조문여부"] ?? "").trim() === "전문";
-      const rawContent = sanitizeContent(
-        String(jo["조문내용"] ?? "") + buildSubArticles(jo["항"])
-      );
-      const rawTitle = String(jo["조문제목"] ?? "").trim();
-      // 장/절 구분자면 본문이 곧 제목, 일반 조문은 제목 없으면 본문 첫 줄 사용
-      const articleTitle = isChapterHeader
-        ? rawContent
-        : rawTitle || rawContent.split("\n")[0].slice(0, 30) || `조문 ${idx + 1}`;
-      return {
-        lawId: String(basicInfo?.["법령ID"] ?? ""),
-        lawName: String(basicInfo?.["법령명_한글"] ?? ""),
-        articleNo: String(jo["조문번호"] ?? ""),
-        articleTitle,
-        content: rawContent,
-        revisionDate: String(basicInfo?.["개정일자"] ?? ""),
-        isChapterHeader,
-      };
-    }
-  );
+  const articles = toArray(law["조문"]?.["조문단위"])
+    .map(
+      (jo: Record<string, unknown>, idx: number) => {
+        const isChapterHeader = String(jo["조문여부"] ?? "").trim() === "전문";
+        const rawContent = sanitizeContent(
+          String(jo["조문내용"] ?? "") + buildSubArticles(jo["항"])
+        );
+        const rawTitle = String(jo["조문제목"] ?? "").trim();
+        // 장/절 구분자면 본문이 곧 제목, 일반 조문은 제목 없으면 본문 첫 줄 사용
+        const articleTitle = isChapterHeader
+          ? rawContent
+          : rawTitle || rawContent.split("\n")[0].slice(0, 30) || `조문 ${idx + 1}`;
+        return {
+          lawId: String(basicInfo?.["법령ID"] ?? ""),
+          lawName: String(basicInfo?.["법령명_한글"] ?? ""),
+          articleNo: String(jo["조문번호"] ?? ""),
+          articleTitle,
+          content: rawContent,
+          revisionDate: String(basicInfo?.["개정일자"] ?? ""),
+          isChapterHeader,
+        };
+      }
+    )
+    // 삭제된 조문 필터링
+    .filter((a) => a.isChapterHeader || !isDeletedArticle(a.content));
 
   return {
     lawId: String(basicInfo?.["법령ID"] ?? ""),
@@ -100,25 +108,28 @@ export function parseAdminRuleDetailXml(xml: string): LawDetail | null {
 
   // 조문 파싱 (행정규칙은 "조문" 또는 "규정" 구조)
   const joUnit = rule["조문"]?.["조문단위"] ?? rule["규정"]?.["조문단위"];
-  const articles = toArray(joUnit).map((jo: Record<string, unknown>, idx: number) => {
-    const isChapterHeader = String(jo["조문여부"] ?? "").trim() === "전문";
-    const rawContent = sanitizeContent(
-      String(jo["조문내용"] ?? "") + buildSubArticles(jo["항"])
-    );
-    const rawTitle = String(jo["조문제목"] ?? "").trim();
-    const articleTitle = isChapterHeader
-      ? rawContent
-      : rawTitle || rawContent.split("\n")[0].slice(0, 30) || `조문 ${idx + 1}`;
-    return {
-      lawId,
-      lawName,
-      articleNo: String(jo["조문번호"] ?? ""),
-      articleTitle,
-      content: rawContent,
-      revisionDate,
-      isChapterHeader,
-    };
-  });
+  const articles = toArray(joUnit)
+    .map((jo: Record<string, unknown>, idx: number) => {
+      const isChapterHeader = String(jo["조문여부"] ?? "").trim() === "전문";
+      const rawContent = sanitizeContent(
+        String(jo["조문내용"] ?? "") + buildSubArticles(jo["항"])
+      );
+      const rawTitle = String(jo["조문제목"] ?? "").trim();
+      const articleTitle = isChapterHeader
+        ? rawContent
+        : rawTitle || rawContent.split("\n")[0].slice(0, 30) || `조문 ${idx + 1}`;
+      return {
+        lawId,
+        lawName,
+        articleNo: String(jo["조문번호"] ?? ""),
+        articleTitle,
+        content: rawContent,
+        revisionDate,
+        isChapterHeader,
+      };
+    })
+    // 삭제된 조문 필터링
+    .filter((a) => a.isChapterHeader || !isDeletedArticle(a.content));
 
   return {
     lawId,
