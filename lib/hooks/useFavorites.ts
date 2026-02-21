@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect, useCallback } from "react";
 
-// 서버 저장 즐겨찾기 (로그인 시)
+// 즐겨찾기 타입 (localStorage + 서버 공용)
 export interface Favorite {
   id: number | string;
   lawId: string;
@@ -15,65 +14,77 @@ export interface Favorite {
   hasChanges: boolean;
 }
 
-// localStorage 기반 즐겨찾기 (비로그인 시)
-const LOCAL_STORAGE_KEY = "survey-law-favorites-local";
+// localStorage 키
+const LOCAL_KEY = "survey-law-favorites-v2";
 
-function loadLocalFavorites(): Favorite[] {
+function loadLocal(): Favorite[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as Favorite[];
+    const raw = localStorage.getItem(LOCAL_KEY);
+    return raw ? (JSON.parse(raw) as Favorite[]) : [];
   } catch {
     return [];
   }
 }
 
-function saveLocalFavorites(favs: Favorite[]) {
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(favs));
+function saveLocal(favs: Favorite[]) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(favs));
+  } catch {
+    // 스토리지 가득 찬 경우 무시
+  }
+}
+
+// /api/auth/session 으로 로그인 여부 확인 (next-auth useSession 미사용)
+async function fetchSessionUserId(): Promise<string | null> {
+  try {
+    const res = await fetch("/api/auth/session");
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data?.user?.id as string) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function useFavorites() {
-  const { data: session, status } = useSession();
-  const isLoggedIn = !!session?.user;
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const loadedRef = useRef(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const fetchServerFavorites = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/favorites");
-      if (!res.ok) {
-        // 401 등 오류 시 빈 배열
-        setFavorites([]);
-        return;
-      }
-      const data = await res.json();
-      setFavorites(data.favorites ?? []);
-    } catch (e) {
-      console.error("즐겨찾기 로드 실패:", e);
-      setFavorites([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // 세션 상태에 따라 서버 or 로컬 로드
+  // 초기화: 세션 확인 후 로컬 or 서버 로드
   useEffect(() => {
-    if (status === "loading") return; // 세션 로딩 중 대기
+    let cancelled = false;
 
-    if (isLoggedIn) {
-      // 로그인 상태: 서버에서 즐겨찾기 로드
-      fetchServerFavorites();
-    } else {
-      // 비로그인: localStorage에서 로드
-      const local = loadLocalFavorites();
-      setFavorites(local);
-      setIsLoading(false);
+    async function init() {
+      setIsLoading(true);
+      try {
+        const userId = await fetchSessionUserId();
+        if (cancelled) return;
+
+        if (userId) {
+          setIsLoggedIn(true);
+          const res = await fetch("/api/favorites");
+          if (!cancelled && res.ok) {
+            const data = await res.json();
+            setFavorites(data.favorites ?? []);
+          } else if (!cancelled) {
+            setFavorites(loadLocal());
+          }
+        } else {
+          setIsLoggedIn(false);
+          setFavorites(loadLocal());
+        }
+      } catch {
+        if (!cancelled) setFavorites(loadLocal());
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     }
-    loadedRef.current = true;
-  }, [status, isLoggedIn, fetchServerFavorites]);
+
+    init();
+    return () => { cancelled = true; };
+  }, []);
 
   const isFavorite = useCallback(
     (lawId: string, articleNo?: string | null) =>
@@ -100,9 +111,15 @@ export function useFavorites() {
           body: JSON.stringify({ lawId, lawName, articleNo, articleTitle }),
         });
         if (!res.ok) {
-          throw new Error("즐겨찾기 추가 실패");
+          const err = await res.json().catch(() => ({}));
+          throw new Error((err as { error?: string }).error ?? "즐겨찾기 추가 실패");
         }
-        await fetchServerFavorites();
+        // 목록 다시 불러오기
+        const listRes = await fetch("/api/favorites");
+        if (listRes.ok) {
+          const data = await listRes.json();
+          setFavorites(data.favorites ?? []);
+        }
       } else {
         // 비로그인: localStorage 저장
         const id = `local__${lawId}__${articleNo ?? ""}__${Date.now()}`;
@@ -118,28 +135,28 @@ export function useFavorites() {
         };
         setFavorites((prev) => {
           const updated = [newFav, ...prev];
-          saveLocalFavorites(updated);
+          saveLocal(updated);
           return updated;
         });
       }
     },
-    [isLoggedIn, fetchServerFavorites]
+    [isLoggedIn]
   );
 
   const removeFavorite = useCallback(
     async (id: number | string) => {
       if (isLoggedIn) {
-        // 로그인: 서버 삭제
-        await fetch(`/api/favorites/${id}`, { method: "DELETE" });
-        setFavorites((prev) => prev.filter((f) => f.id !== id));
-      } else {
-        // 비로그인: localStorage 삭제
-        setFavorites((prev) => {
-          const updated = prev.filter((f) => String(f.id) !== String(id));
-          saveLocalFavorites(updated);
-          return updated;
-        });
+        const res = await fetch(`/api/favorites/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          throw new Error("즐겨찾기 삭제 실패");
+        }
       }
+      // 로컬 상태 즉시 업데이트
+      setFavorites((prev) => {
+        const updated = prev.filter((f) => String(f.id) !== String(id));
+        if (!isLoggedIn) saveLocal(updated);
+        return updated;
+      });
     },
     [isLoggedIn]
   );
@@ -167,11 +184,19 @@ export function useFavorites() {
 
   const refresh = useCallback(async () => {
     if (isLoggedIn) {
-      await fetchServerFavorites();
+      try {
+        const res = await fetch("/api/favorites");
+        if (res.ok) {
+          const data = await res.json();
+          setFavorites(data.favorites ?? []);
+        }
+      } catch {
+        // 무시
+      }
     } else {
-      setFavorites(loadLocalFavorites());
+      setFavorites(loadLocal());
     }
-  }, [isLoggedIn, fetchServerFavorites]);
+  }, [isLoggedIn]);
 
   return {
     favorites,
