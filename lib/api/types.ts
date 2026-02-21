@@ -16,6 +16,7 @@ export interface Article {
   articleTitle: string; // 조문제목
   content: string;      // 조문본문 (HTML 포함 가능)
   revisionDate: string;
+  isChapterHeader?: boolean; // 장/절/관 구분자 여부 (조문여부="전문")
 }
 
 export interface LawDetail {
