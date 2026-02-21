@@ -7,7 +7,7 @@ import { LAW_MAP, resolveToId, lawHref } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
 import ChangeBadge from "@/components/laws/ChangeBadge";
 import FavoriteButton from "@/components/laws/FavoriteButton";
-import { formatLawDate } from "@/lib/utils/date";
+import { formatLawDate, formatTimestamp } from "@/lib/utils/date";
 import { useSettingsContext } from "@/lib/providers/SettingsProvider";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 import type { LawDetail, Article } from "@/lib/api/types";
@@ -185,6 +185,11 @@ export default function LawDetailPage() {
                 개정일: {formatLawDate(detail.revisionDate)} ·{" "}
                 시행일: {formatLawDate(detail.enforcementDate)}
               </p>
+              {detail.cachedAt && (
+                <p className="text-xs text-gray-400">
+                  📡 법제처 기준 {formatTimestamp(detail.cachedAt)} 조회
+                </p>
+              )}
             </div>
             <FavoriteButton lawId={lawId} lawName={detail.lawName} />
           </div>
@@ -463,6 +468,7 @@ function ArticleCard({
   refCallback?: (el: HTMLDivElement | null) => void;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const [favWorking, setFavWorking] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
   const isArticleFav = isFavorite(lawId, article.articleNo);
 
@@ -470,6 +476,17 @@ function ArticleCard({
     if (searchQuery) setExpanded(true);
     else setExpanded(defaultExpanded);
   }, [searchQuery, defaultExpanded]);
+
+  const handleFavClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (favWorking) return;
+    setFavWorking(true);
+    try {
+      await toggleFavorite(lawId, lawName, article.articleNo, article.articleTitle);
+    } finally {
+      setFavWorking(false);
+    }
+  };
 
   const highlight = (text: string) => {
     if (!searchQuery) return <>{text}</>;
@@ -512,16 +529,14 @@ function ArticleCard({
         <div className="flex items-center gap-2 shrink-0">
           {/* 조문 즐겨찾기 버튼 */}
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleFavorite(lawId, lawName, article.articleNo, article.articleTitle);
-            }}
+            onClick={handleFavClick}
+            disabled={favWorking}
             title={isArticleFav ? "즐겨찾기 해제" : "이 조문 즐겨찾기"}
-            className={`text-base transition-colors ${
+            className={`text-base transition-colors disabled:opacity-50 ${
               isArticleFav ? "text-yellow-500" : "text-gray-300 hover:text-yellow-400"
             }`}
           >
-            {isArticleFav ? "⭐" : "☆"}
+            {favWorking ? "⏳" : isArticleFav ? "⭐" : "☆"}
           </button>
           <Link
             href={lawHref(lawId, article.articleNo)}
@@ -535,9 +550,11 @@ function ArticleCard({
       </button>
       {expanded && (
         <div className="px-4 pb-4 border-t border-gray-100">
-          <pre className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-sans mt-3">
-            {highlight(article.content)}
-          </pre>
+          <div className="overflow-x-auto mt-3">
+            <pre className="text-sm text-gray-700 whitespace-pre leading-relaxed font-sans min-w-0">
+              {highlight(article.content)}
+            </pre>
+          </div>
         </div>
       )}
     </div>

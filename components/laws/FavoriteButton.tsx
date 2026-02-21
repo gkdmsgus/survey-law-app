@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useSession, signIn } from "next-auth/react";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 
 interface FavoriteButtonProps {
@@ -17,7 +16,6 @@ export default function FavoriteButton({
   articleNo,
   articleTitle,
 }: FavoriteButtonProps) {
-  const { data: session, status } = useSession();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [isWorking, setIsWorking] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -30,12 +28,6 @@ export default function FavoriteButton({
   };
 
   const handleClick = async () => {
-    if (!session) {
-      if (confirm("즐겨찾기는 로그인이 필요합니다.\nGoogle 로그인 하시겠습니까?")) {
-        signIn("google");
-      }
-      return;
-    }
     if (isWorking) return;
     setIsWorking(true);
     try {
@@ -52,21 +44,16 @@ export default function FavoriteButton({
     <div className="relative">
       <button
         onClick={handleClick}
-        disabled={isWorking || status === "loading"}
-        title={
-          !session ? "즐겨찾기 (로그인 필요)" : active ? "즐겨찾기 해제" : "즐겨찾기 추가"
-        }
+        disabled={isWorking}
+        title={active ? "즐겨찾기 해제" : "즐겨찾기 추가"}
         className={`inline-flex items-center gap-1 text-sm px-3 py-1.5 rounded-md border transition-colors disabled:opacity-60 ${
           active
             ? "bg-yellow-50 border-yellow-400 text-yellow-700 hover:bg-yellow-100"
-            : !session
-            ? "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
             : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
         }`}
       >
         <span>{isWorking ? "⏳" : active ? "⭐" : "☆"}</span>
         {active ? "즐겨찾기 됨" : "즐겨찾기"}
-        {!session && <span className="text-xs ml-0.5">🔒</span>}
       </button>
 
       {/* 토스트 메시지 */}

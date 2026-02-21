@@ -110,9 +110,11 @@ export default function ArticleDetailPage() {
 
       {/* 조문 본문 */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <pre className="text-sm text-gray-800 whitespace-pre-wrap leading-loose font-sans">
-          {article.content}
-        </pre>
+        <div className="overflow-x-auto">
+          <pre className="text-sm text-gray-800 whitespace-pre leading-loose font-sans min-w-0">
+            {article.content}
+          </pre>
+        </div>
       </div>
 
       {/* 하단 네비게이션 */}

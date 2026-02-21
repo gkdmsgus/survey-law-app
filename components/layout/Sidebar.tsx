@@ -8,6 +8,7 @@ import { useState, useRef, useEffect, Suspense } from "react";
 const NAV_ITEMS = [
   { href: "/", label: "홈", icon: "🏠" },
   { href: "/quick-ref", label: "수치 참조", icon: "📊" },
+  { href: "/calculator", label: "오차 계산기", icon: "📏" },
   { href: "/search", label: "검색", icon: "🔍" },
   { href: "/favorites", label: "즐겨찾기", icon: "⭐" },
   { href: "/notifications", label: "알림", icon: "🔔" },

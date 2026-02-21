@@ -27,6 +27,7 @@ export interface LawDetail {
   enforcementDate: string;
   department: string;
   articles: Article[];
+  cachedAt?: number; // 법령정보원 조회 시점 (Unix timestamp ms)
 }
 
 export interface LawRevision {
