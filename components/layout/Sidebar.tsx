@@ -28,6 +28,9 @@ function SidebarInner({
   const activeLawId = lawIdMatch ? lawIdMatch[1] : null;
   // ?cat= 파라미터로 카테고리 아이템 구별
   const activeCatId = searchParams.get("cat");
+  // 조문 상세/이력 페이지 (/laws/[id]/[articleNo] 또는 /laws/[id]/[articleNo]/history)
+  // 이 경우엔 cat 파라미터 없이 lawId만 있으므로 사이드바 폴백 활성화 끔
+  const isArticleDetailPage = !!pathname.match(/^\/laws\/[^/]+\/[^/]+/);
 
   const sidebarContent = (
     <>
@@ -66,6 +69,7 @@ function SidebarInner({
             node={node}
             activeLawId={activeLawId}
             activeCatId={activeCatId}
+            isArticleDetailPage={isArticleDetailPage}
             onNavigate={() => setMobileOpen(false)}
           />
         ))}
@@ -176,22 +180,25 @@ function CategoryTreeNode({
   node,
   activeLawId,
   activeCatId,
+  isArticleDetailPage,
   onNavigate,
 }: {
   node: CategoryNode;
   activeLawId: string | null;
   activeCatId: string | null;
+  isArticleDetailPage: boolean;
   onNavigate: () => void;
 }) {
   const hasChildren = node.children && node.children.length > 0;
 
   // 이 노드 하위에 현재 활성 카테고리가 있는지 확인
   // activeCatId가 있으면 catId 기준, 없으면 lawId 기준 (fallback)
+  // 단, 조문 상세/이력 페이지에서는 cat 없는 lawId 폴백 사용 안 함 (중복 표시 방지)
   const isChildActive = hasChildren
     ? node.children!.some((child) =>
         activeCatId
           ? child.id === activeCatId
-          : child.lawId === activeLawId
+          : !isArticleDetailPage && child.lawId === activeLawId
       )
     : false;
 
@@ -206,9 +213,10 @@ function CategoryTreeNode({
     // 링크에 ?cat=노드id 추가해서 같은 lawId 내 카테고리를 구별
     const href = node.lawId ? `/laws/${node.lawId}?cat=${node.id}` : "#";
     // activeCatId가 있으면 catId로 판단, 없으면 lawId로 판단
+    // 조문 상세 페이지에서는 cat 없는 폴백 끔 (중복 표시 방지)
     const isActive = activeCatId
       ? node.id === activeCatId
-      : node.lawId === activeLawId;
+      : !isArticleDetailPage && node.lawId === activeLawId;
     return (
       <Link
         href={href}
@@ -251,6 +259,7 @@ function CategoryTreeNode({
               node={child}
               activeLawId={activeLawId}
               activeCatId={activeCatId}
+              isArticleDetailPage={isArticleDetailPage}
               onNavigate={onNavigate}
             />
           ))}
