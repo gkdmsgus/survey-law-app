@@ -2,8 +2,19 @@
 
 import Link from "next/link";
 import { useSettingsContext } from "@/lib/providers/SettingsProvider";
-import { SURVEY_LAWS } from "@/lib/constants/laws";
+import { SURVEY_LAWS, CATEGORY_TREE } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
+
+// lawId에 해당하는 첫 번째 카테고리 leaf 노드 id 반환
+// 사이드바 활성 표시를 위해 ?cat= 파라미터로 사용
+function getFirstCatId(lawId: string): string | null {
+  for (const parent of CATEGORY_TREE) {
+    for (const child of parent.children ?? []) {
+      if (child.lawId === lawId) return child.id;
+    }
+  }
+  return null;
+}
 
 export default function MyJobRecommend() {
   const { settings, mounted } = useSettingsContext();
@@ -26,10 +37,13 @@ export default function MyJobRecommend() {
         </span>
       </div>
       <div className="bg-white rounded-lg border border-blue-200 divide-y divide-gray-100">
-        {recommended.map((law) => (
+        {recommended.map((law) => {
+          const catId = getFirstCatId(law.id);
+          const href = catId ? `/laws/${law.id}?cat=${catId}` : `/laws/${law.id}`;
+          return (
           <Link
             key={law.id}
-            href={`/laws/${law.id}`}
+            href={href}
             className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors"
           >
             <LawTypeBadge type={law.type} />
@@ -39,7 +53,8 @@ export default function MyJobRecommend() {
             </div>
             <span className="text-gray-400 text-sm">→</span>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
