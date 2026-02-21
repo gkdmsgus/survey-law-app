@@ -36,17 +36,22 @@ export function parseLawDetailXml(xml: string): LawDetail | null {
 
   const basicInfo = law["기본정보"];
   const articles = toArray(law["조문"]?.["조문단위"]).map(
-    (jo: Record<string, unknown>) => ({
-      lawId: String(basicInfo?.["법령ID"] ?? ""),
-      lawName: String(basicInfo?.["법령명_한글"] ?? ""),
-      articleNo: String(jo["조문번호"] ?? ""),
-      articleTitle: String(jo["조문제목"] ?? ""),
-      content: sanitizeContent(
-        String(jo["조문내용"] ?? "") +
-        buildSubArticles(jo["항"])
-      ),
-      revisionDate: String(basicInfo?.["개정일자"] ?? ""),
-    })
+    (jo: Record<string, unknown>, idx: number) => {
+      const rawContent = sanitizeContent(
+        String(jo["조문내용"] ?? "") + buildSubArticles(jo["항"])
+      );
+      const rawTitle = String(jo["조문제목"] ?? "").trim();
+      // 제목이 없으면 본문 첫 줄(최대 30자)을 제목으로 사용
+      const articleTitle = rawTitle || rawContent.split("\n")[0].slice(0, 30) || `조문 ${idx + 1}`;
+      return {
+        lawId: String(basicInfo?.["법령ID"] ?? ""),
+        lawName: String(basicInfo?.["법령명_한글"] ?? ""),
+        articleNo: String(jo["조문번호"] ?? ""),
+        articleTitle,
+        content: rawContent,
+        revisionDate: String(basicInfo?.["개정일자"] ?? ""),
+      };
+    }
   );
 
   return {
@@ -91,16 +96,21 @@ export function parseAdminRuleDetailXml(xml: string): LawDetail | null {
 
   // 조문 파싱 (행정규칙은 "조문" 또는 "규정" 구조)
   const joUnit = rule["조문"]?.["조문단위"] ?? rule["규정"]?.["조문단위"];
-  const articles = toArray(joUnit).map((jo: Record<string, unknown>) => ({
-    lawId,
-    lawName,
-    articleNo: String(jo["조문번호"] ?? ""),
-    articleTitle: String(jo["조문제목"] ?? ""),
-    content: sanitizeContent(
+  const articles = toArray(joUnit).map((jo: Record<string, unknown>, idx: number) => {
+    const rawContent = sanitizeContent(
       String(jo["조문내용"] ?? "") + buildSubArticles(jo["항"])
-    ),
-    revisionDate,
-  }));
+    );
+    const rawTitle = String(jo["조문제목"] ?? "").trim();
+    const articleTitle = rawTitle || rawContent.split("\n")[0].slice(0, 30) || `조문 ${idx + 1}`;
+    return {
+      lawId,
+      lawName,
+      articleNo: String(jo["조문번호"] ?? ""),
+      articleTitle,
+      content: rawContent,
+      revisionDate,
+    };
+  });
 
   return {
     lawId,

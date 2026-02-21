@@ -128,9 +128,9 @@ export default function LawDetailPage() {
           전체 {detail.articles.length}개 조문
           {searchQuery && ` · 검색 결과 ${filteredArticles?.length}개`}
         </p>
-        {filteredArticles?.map((article) => (
+        {filteredArticles?.map((article, idx) => (
           <ArticleCard
-            key={article.articleNo}
+            key={`${article.articleNo}-${idx}`}
             article={article}
             lawId={lawId}
             searchQuery={searchQuery}
