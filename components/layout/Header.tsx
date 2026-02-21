@@ -6,19 +6,36 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useNotifications } from "@/lib/hooks/useNotifications";
+import { relativeTime } from "@/lib/utils/date";
 
 export default function Header() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const { data: session, status } = useSession();
-  const { unreadCount } = useNotifications();
+  const { unreadCount, notifications, markAsRead, markAllRead, refresh } =
+    useNotifications();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       router.push(`/search?q=${encodeURIComponent(query.trim())}`);
     }
+  };
+
+  const handleNotifOpen = () => {
+    setNotifOpen((v) => {
+      if (!v) refresh(); // 열릴 때 최신 데이터 fetch
+      return !v;
+    });
+    setMenuOpen(false);
+  };
+
+  const handleNotifItemClick = async (id: number, lawId: string) => {
+    await markAsRead(id);
+    setNotifOpen(false);
+    router.push(`/laws/${lawId}`);
   };
 
   return (
@@ -52,18 +69,130 @@ export default function Header() {
         <div className="flex items-center gap-2 ml-4 shrink-0">
           {/* 알림 (로그인 시만 표시) */}
           {session && (
-            <Link
-              href="/notifications"
-              className="relative p-2 text-gray-600 hover:text-gray-900"
-              title="알림"
-            >
-              <span className="text-xl">🔔</span>
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </Link>
+            <>
+              {/* 모바일: 페이지 이동 */}
+              <Link
+                href="/notifications"
+                className="md:hidden relative p-2 text-gray-600 hover:text-gray-900"
+                title="알림"
+              >
+                <span className="text-xl">🔔</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* 데스크탑: 드롭다운 패널 */}
+              <div className="hidden md:block relative">
+                <button
+                  onClick={handleNotifOpen}
+                  className="relative p-2 text-gray-600 hover:text-gray-900"
+                  title="알림"
+                >
+                  <span className="text-xl">🔔</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {notifOpen && (
+                  <>
+                    {/* 외부 클릭 닫기 */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setNotifOpen(false)}
+                    />
+                    {/* 드롭다운 패널 */}
+                    <div className="absolute right-0 top-full mt-1 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
+                      {/* 헤더 */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-900">
+                            알림
+                          </span>
+                          {unreadCount > 0 && (
+                            <span className="bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+                              {unreadCount}
+                            </span>
+                          )}
+                        </div>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllRead}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            모두 읽음
+                          </button>
+                        )}
+                      </div>
+
+                      {/* 알림 목록 */}
+                      <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                        {notifications.length === 0 ? (
+                          <div className="py-10 text-center">
+                            <p className="text-2xl mb-2">🔔</p>
+                            <p className="text-sm text-gray-400">
+                              새로운 알림이 없습니다
+                            </p>
+                          </div>
+                        ) : (
+                          notifications.slice(0, 10).map((notif) => (
+                            <button
+                              key={notif.id}
+                              onClick={() =>
+                                handleNotifItemClick(notif.id, notif.lawId)
+                              }
+                              className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-start gap-3 ${
+                                !notif.isRead ? "bg-blue-50" : "bg-white"
+                              }`}
+                            >
+                              {/* 미읽음 파란 점 */}
+                              <div className="mt-1.5 shrink-0">
+                                {!notif.isRead ? (
+                                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                                ) : (
+                                  <div className="w-2 h-2 rounded-full bg-transparent" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-gray-900 leading-snug line-clamp-2">
+                                  {notif.message}
+                                </p>
+                                {notif.oldRevisionDate &&
+                                  notif.newRevisionDate && (
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                      {notif.oldRevisionDate} →{" "}
+                                      {notif.newRevisionDate}
+                                    </p>
+                                  )}
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                  {relativeTime(notif.createdAt)}
+                                </p>
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+
+                      {/* 하단: 전체 보기 */}
+                      <div className="border-t border-gray-100">
+                        <Link
+                          href="/notifications"
+                          onClick={() => setNotifOpen(false)}
+                          className="block text-center text-xs text-blue-600 hover:text-blue-800 font-medium py-2.5 hover:bg-gray-50 transition-colors"
+                        >
+                          전체 알림 보기
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
           )}
 
           {/* 로그인/유저 영역 */}
@@ -72,7 +201,7 @@ export default function Header() {
           ) : session ? (
             <div className="relative">
               <button
-                onClick={() => setMenuOpen((v) => !v)}
+                onClick={() => { setMenuOpen((v) => !v); setNotifOpen(false); }}
                 className="flex items-center gap-2 rounded-full focus:outline-none"
               >
                 {session.user?.image ? (
