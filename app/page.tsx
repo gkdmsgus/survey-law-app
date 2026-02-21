@@ -28,7 +28,7 @@ export default function HomePage() {
             <Link
               key={kw}
               href={`/search?q=${encodeURIComponent(kw)}`}
-              className="bg-blue-600 hover:bg-blue-500 text-sm px-3 py-1.5 rounded-full transition-colors"
+              className="bg-blue-600 hover:bg-blue-500 text-sm px-3 py-1.5 rounded-full transition-colors whitespace-nowrap"
             >
               {kw}
             </Link>

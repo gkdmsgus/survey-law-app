@@ -14,15 +14,17 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  return (
-    <aside className="w-60 shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col h-full overflow-y-auto">
+  const sidebarContent = (
+    <>
       {/* 기본 메뉴 */}
       <nav className="p-3 border-b border-gray-200">
         {NAV_ITEMS.map((item) => (
           <Link
             key={item.href}
             href={item.href}
+            onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
               pathname === item.href
                 ? "bg-blue-100 text-blue-700"
@@ -41,7 +43,7 @@ export default function Sidebar() {
           측량 기준 찾기
         </p>
         {CATEGORY_TREE.map((node) => (
-          <CategoryTreeNode key={node.id} node={node} />
+          <CategoryTreeNode key={node.id} node={node} onNavigate={() => setMobileOpen(false)} />
         ))}
       </div>
 
@@ -49,28 +51,69 @@ export default function Sidebar() {
       <div className="p-3 border-t border-gray-200 mt-auto">
         <Link
           href="/laws"
+          onClick={() => setMobileOpen(false)}
           className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-100"
         >
           <span>📚</span>
           전체 법령 목록
         </Link>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* 모바일 햄버거 버튼 */}
+      <button
+        className="md:hidden fixed bottom-4 right-4 z-50 bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg text-xl"
+        onClick={() => setMobileOpen(true)}
+        aria-label="메뉴 열기"
+      >
+        ☰
+      </button>
+
+      {/* 모바일 오버레이 */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/40"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* 모바일 드로어 */}
+      {mobileOpen && (
+        <aside className="md:hidden fixed left-0 top-0 z-50 w-72 h-full bg-gray-50 border-r border-gray-200 flex flex-col overflow-y-auto shadow-xl">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+            <span className="font-bold text-blue-700">메뉴</span>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ✕
+            </button>
+          </div>
+          {sidebarContent}
+        </aside>
+      )}
+
+      {/* 데스크탑 사이드바 (항상 표시) */}
+      <aside className="hidden md:flex w-60 shrink-0 border-r border-gray-200 bg-gray-50 flex-col h-full overflow-y-auto">
+        {sidebarContent}
+      </aside>
+    </>
   );
 }
 
-function CategoryTreeNode({ node }: { node: CategoryNode }) {
+function CategoryTreeNode({ node, onNavigate }: { node: CategoryNode; onNavigate: () => void }) {
   const [open, setOpen] = useState(false);
   const hasChildren = node.children && node.children.length > 0;
 
   if (!hasChildren) {
-    // 말단 노드 → 법령 조문으로 링크
-    const href = node.lawId
-      ? `/laws/${node.lawId}`
-      : "#";
+    const href = node.lawId ? `/laws/${node.lawId}` : "#";
     return (
       <Link
         href={href}
+        onClick={onNavigate}
         className="flex items-center gap-1.5 pl-6 pr-2 py-1.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md"
       >
         <span className="text-gray-400">└</span>
@@ -92,7 +135,7 @@ function CategoryTreeNode({ node }: { node: CategoryNode }) {
       {open && (
         <div className="ml-2">
           {node.children!.map((child) => (
-            <CategoryTreeNode key={child.id} node={child} />
+            <CategoryTreeNode key={child.id} node={child} onNavigate={onNavigate} />
           ))}
         </div>
       )}
