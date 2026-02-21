@@ -76,7 +76,9 @@ export class LawGoClient {
 
   /** 행정규칙(고시/훈령) 상세 조회 */
   async getAdminRuleDetail(ruleId: string): Promise<LawDetail | null> {
-    const xml = await this.fetchXml("admRulService.do", {
+    // admRulService.do는 짧은 행정규칙ID 사용 시 404
+    // lawService.do?target=admrul + 행정규칙일련번호 조합이 올바름
+    const xml = await this.fetchXml("lawService.do", {
       target: "admrul",
       ID: ruleId,
     });

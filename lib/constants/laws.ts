@@ -44,7 +44,7 @@ export const SURVEY_LAWS: SurveyLaw[] = [
     categories: ["지적측량", "허용오차", "성과기준", "측량기간"],
   },
   {
-    id: "32314",
+    id: "2100000258132",  // 행정규칙 일련번호 (lawService.do?target=admrul 용)
     name: "공공측량 작업규정",
     shortName: "공공측량규정",
     type: "고시",
@@ -53,7 +53,7 @@ export const SURVEY_LAWS: SurveyLaw[] = [
     isAdminRule: true,
   },
   {
-    id: "44181",
+    id: "2100000263420",  // 행정규칙 일련번호
     name: "지적확정측량규정",
     shortName: "지적확정측량규정",
     type: "훈령",
@@ -62,16 +62,16 @@ export const SURVEY_LAWS: SurveyLaw[] = [
     isAdminRule: true,
   },
   {
-    id: "35777",
+    id: "2100000263380",  // 행정규칙 일련번호
     name: "GNSS에 의한 지적측량규정",
     shortName: "GNSS측량규정",
-    type: "훈령",
+    type: "예규",
     department: "국토교통부",
     categories: ["GNSS측량", "장비기준", "관측기준"],
     isAdminRule: true,
   },
   {
-    id: "2072245",
+    id: "2100000187623",  // 행정규칙 일련번호
     name: "일반측량 작업규정",
     shortName: "일반측량규정",
     type: "고시",
@@ -104,7 +104,7 @@ export const CATEGORY_TREE: CategoryNode[] = [
       { id: "jijuk-equipment", label: "장비기준", lawId: "011120", articleNos: [] },
       { id: "jijuk-result", label: "성과기준", lawId: "011121", articleNos: [] },
       { id: "jijuk-period", label: "측량기간", lawId: "011121", articleNos: [] },
-      { id: "jijuk-confirm", label: "지적확정측량", lawId: "44181", articleNos: [] },
+      { id: "jijuk-confirm", label: "지적확정측량", lawId: "2100000263420", articleNos: [] },
     ],
   },
   {
@@ -112,8 +112,8 @@ export const CATEGORY_TREE: CategoryNode[] = [
     label: "GNSS 측량",
     icon: "🛰️",
     children: [
-      { id: "gnss-equipment", label: "장비기준", lawId: "35777", articleNos: [] },
-      { id: "gnss-observation", label: "관측기준", lawId: "35777", articleNos: [] },
+      { id: "gnss-equipment", label: "장비기준", lawId: "2100000263380", articleNos: [] },
+      { id: "gnss-observation", label: "관측기준", lawId: "2100000263380", articleNos: [] },
     ],
   },
   {
@@ -121,9 +121,9 @@ export const CATEGORY_TREE: CategoryNode[] = [
     label: "공공측량",
     icon: "🗺️",
     children: [
-      { id: "public-plan", label: "작업계획", lawId: "32314", articleNos: [] },
-      { id: "public-control", label: "기준점측량", lawId: "32314", articleNos: [] },
-      { id: "public-drone", label: "드론측량", lawId: "32314", articleNos: [] },
+      { id: "public-plan", label: "작업계획", lawId: "2100000258132", articleNos: [] },
+      { id: "public-control", label: "기준점측량", lawId: "2100000258132", articleNos: [] },
+      { id: "public-drone", label: "드론측량", lawId: "2100000258132", articleNos: [] },
     ],
   },
   {
@@ -131,7 +131,7 @@ export const CATEGORY_TREE: CategoryNode[] = [
     label: "일반측량",
     icon: "📏",
     children: [
-      { id: "general-standard", label: "수행기준", lawId: "2072245", articleNos: [] },
+      { id: "general-standard", label: "수행기준", lawId: "2100000187623", articleNos: [] },
     ],
   },
   {
