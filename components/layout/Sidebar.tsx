@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CATEGORY_TREE, type CategoryNode } from "@/lib/constants/laws";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const NAV_ITEMS = [
   { href: "/", label: "홈", icon: "🏠" },
@@ -15,6 +15,18 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // 스와이프 감지
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = touchStartX.current - e.changedTouches[0].clientX;
+    if (dx > 60) setMobileOpen(false); // 왼쪽으로 60px 이상 스와이프 → 닫기
+    touchStartX.current = null;
+  };
 
   const sidebarContent = (
     <>
@@ -63,14 +75,16 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* 모바일 햄버거 버튼 */}
-      <button
-        className="md:hidden fixed bottom-4 right-4 z-50 bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg text-xl"
-        onClick={() => setMobileOpen(true)}
-        aria-label="메뉴 열기"
-      >
-        ☰
-      </button>
+      {/* 모바일 햄버거 버튼 - 메뉴 닫혔을 때만 표시 */}
+      {!mobileOpen && (
+        <button
+          className="md:hidden fixed bottom-4 right-4 z-50 bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg text-xl"
+          onClick={() => setMobileOpen(true)}
+          aria-label="메뉴 열기"
+        >
+          ☰
+        </button>
+      )}
 
       {/* 모바일 오버레이 */}
       {mobileOpen && (
@@ -82,7 +96,11 @@ export default function Sidebar() {
 
       {/* 모바일 드로어 */}
       {mobileOpen && (
-        <aside className="md:hidden fixed left-0 top-0 z-50 w-72 h-full bg-gray-50 border-r border-gray-200 flex flex-col overflow-y-auto shadow-xl">
+        <aside
+          className="md:hidden fixed left-0 top-0 z-50 w-72 h-full bg-white border-r border-gray-200 flex flex-col overflow-y-auto shadow-xl"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
             <span className="font-bold text-blue-700">메뉴</span>
             <button
@@ -96,7 +114,7 @@ export default function Sidebar() {
         </aside>
       )}
 
-      {/* 데스크탑 사이드바 (항상 표시) */}
+      {/* 데스크탑 사이드바 */}
       <aside className="hidden md:flex w-60 shrink-0 border-r border-gray-200 bg-gray-50 flex-col h-full overflow-y-auto">
         {sidebarContent}
       </aside>

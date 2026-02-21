@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" className="light" style={{ colorScheme: "light" }}>
       <body className={`${geist.variable} antialiased bg-gray-50`}>
         <AuthProvider>
           <div className="flex flex-col h-screen overflow-hidden">
