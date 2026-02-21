@@ -120,14 +120,35 @@ export default function LawDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-2/3" />
-          <div className="h-4 bg-gray-200 rounded w-1/3" />
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-20 bg-gray-200 rounded" />
-          ))}
+      <div className="max-w-3xl mx-auto space-y-4 animate-pulse">
+        {/* 브레드크럼 */}
+        <div className="flex items-center gap-2">
+          <div className="h-3.5 bg-gray-200 rounded w-6" />
+          <div className="h-3.5 bg-gray-200 rounded w-1" />
+          <div className="h-3.5 bg-gray-200 rounded w-8" />
+          <div className="h-3.5 bg-gray-200 rounded w-1" />
+          <div className="h-3.5 bg-gray-200 rounded w-32" />
         </div>
+        {/* 법령 헤더 카드 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="h-5 bg-gray-200 rounded w-16" />
+            <div className="h-5 bg-gray-200 rounded w-12" />
+          </div>
+          <div className="h-6 bg-gray-200 rounded w-3/4" />
+          <div className="h-4 bg-gray-200 rounded w-1/2" />
+        </div>
+        {/* 검색바 */}
+        <div className="h-10 bg-gray-200 rounded-lg" />
+        {/* 조문 카드들 */}
+        <div className="h-3.5 bg-gray-200 rounded w-20" />
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-lg border border-gray-200 px-4 py-3 flex items-center gap-3">
+            <div className="h-5 bg-gray-200 rounded w-14 shrink-0" />
+            <div className="h-4 bg-gray-200 rounded flex-1" style={{ width: `${55 + (i * 13) % 35}%` }} />
+            <div className="h-4 bg-gray-200 rounded w-8 shrink-0" />
+          </div>
+        ))}
       </div>
     );
   }

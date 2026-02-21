@@ -38,9 +38,45 @@ export default function ArticleDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto animate-pulse space-y-4">
-        <div className="h-6 bg-gray-200 rounded w-1/2" />
-        <div className="h-40 bg-gray-200 rounded" />
+      <div className="max-w-3xl mx-auto space-y-6 animate-pulse">
+        {/* 브레드크럼 */}
+        <div className="flex items-center gap-2">
+          <div className="h-3.5 bg-gray-200 rounded w-6" />
+          <div className="h-3.5 bg-gray-200 rounded w-1" />
+          <div className="h-3.5 bg-gray-200 rounded w-8" />
+          <div className="h-3.5 bg-gray-200 rounded w-1" />
+          <div className="h-3.5 bg-gray-200 rounded w-28" />
+          <div className="h-3.5 bg-gray-200 rounded w-1" />
+          <div className="h-3.5 bg-gray-200 rounded w-12" />
+        </div>
+        {/* 조문 헤더 카드 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center gap-2">
+                <div className="h-5 bg-gray-200 rounded w-16" />
+                <div className="h-5 bg-gray-200 rounded w-10" />
+              </div>
+              <div className="h-6 bg-gray-200 rounded w-2/3" />
+              <div className="h-3.5 bg-gray-200 rounded w-1/2" />
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <div className="h-8 bg-gray-200 rounded-md w-24" />
+              <div className="h-8 bg-gray-200 rounded-md w-20" />
+            </div>
+          </div>
+        </div>
+        {/* 본문 카드 */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-3.5 bg-gray-200 rounded" style={{ width: `${60 + (i * 17) % 40}%` }} />
+          ))}
+        </div>
+        {/* 하단 네비 */}
+        <div className="flex justify-between">
+          <div className="h-4 bg-gray-200 rounded w-24" />
+          <div className="h-4 bg-gray-200 rounded w-24" />
+        </div>
       </div>
     );
   }

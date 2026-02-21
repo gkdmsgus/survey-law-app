@@ -19,11 +19,25 @@ export default function FavoritesPage() {
 
   if (!mounted || isLoading) {
     return (
-      <div className="max-w-3xl mx-auto animate-pulse space-y-3">
-        <div className="h-8 bg-gray-200 rounded w-1/3" />
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-20 bg-gray-200 rounded" />
-        ))}
+      <div className="max-w-3xl mx-auto space-y-6 animate-pulse">
+        {/* 페이지 헤더 */}
+        <div className="space-y-2">
+          <div className="h-7 bg-gray-200 rounded w-24" />
+          <div className="h-4 bg-gray-200 rounded w-52" />
+        </div>
+        {/* 즐겨찾기 아이템들 */}
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-lg border border-gray-200 p-4 flex items-start gap-3">
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded" style={{ width: `${50 + (i * 19) % 35}%` }} />
+                <div className="h-3 bg-gray-200 rounded w-1/3" />
+                <div className="h-3 bg-gray-200 rounded w-28" />
+              </div>
+              <div className="h-6 bg-gray-200 rounded w-10 shrink-0" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
