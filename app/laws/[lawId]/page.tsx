@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { LAW_MAP, resolveToId, lawHref } from "@/lib/constants/laws";
+import { useParams, useSearchParams } from "next/navigation";
+import { LAW_MAP, CATEGORY_TREE, resolveToId, lawHref } from "@/lib/constants/laws";
 import LawTypeBadge from "@/components/laws/LawTypeBadge";
 import ChangeBadge from "@/components/laws/ChangeBadge";
 import FavoriteButton from "@/components/laws/FavoriteButton";
@@ -15,6 +15,8 @@ import type { LawDetail, Article } from "@/lib/api/types";
 export default function LawDetailPage() {
   const { lawId: rawLawId } = useParams<{ lawId: string }>();
   const lawId = resolveToId(rawLawId); // 슬러그 → 실제 ID 변환
+  const searchParams = useSearchParams();
+  const catId = searchParams.get("cat");
   const { settings } = useSettingsContext();
   const [detail, setDetail] = useState<LawDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +66,20 @@ export default function LawDetailPage() {
   // 검색 결과 조문만 (네비게이션용 - 헤더 제외)
   const searchResultArticles = filteredArticles?.filter(a => !a.isChapterHeader) ?? [];
   const filteredRealCount = searchResultArticles.length;
+
+  // cat 파라미터 변경 시 해당 카테고리 label로 자동 검색
+  useEffect(() => {
+    if (!catId || !detail) return;
+    for (const parent of CATEGORY_TREE) {
+      const child = parent.children?.find(
+        (c) => c.id === catId && c.lawId === lawId
+      );
+      if (child) {
+        setSearchQuery(child.label);
+        return;
+      }
+    }
+  }, [catId, lawId, detail]);
 
   // 검색어 변경 시 인덱스 초기화 + 첫 결과로 스크롤
   useEffect(() => {
